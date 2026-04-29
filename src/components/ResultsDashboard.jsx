@@ -59,10 +59,10 @@ export default function ResultsDashboard({ result, personA, personB, animated = 
 
       {/* ── 1. Main gauges ── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass-strong rounded-2xl p-6 flex flex-col items-center justify-center text-center md:col-span-1 animate-pulse-glow">
+        <div className="glass-strong rounded-2xl p-6 flex flex-col items-center justify-center text-center md:col-span-1">
           <p className="text-xs text-white/58 mb-4 tracking-widest uppercase">Overall Compatibility</p>
           <ScoreGauge score={overall} label="" size={160} animate={animated} />
-          <p className="text-xs text-white/58 mt-3 font-mono">Market-adjusted · Relationship + Child</p>
+          <p className="text-xs text-white/58 mt-3 font-mono">Relationship + Child</p>
         </div>
 
         <div className="md:col-span-2 grid grid-cols-2 gap-4">
