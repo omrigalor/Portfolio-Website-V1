@@ -68,7 +68,7 @@ function Tag({ label }) {
 function PatentCard({ item, onOpen }) {
   return (
     <div
-      className={`glass rounded-2xl p-6 flex flex-col gap-4 transition-all ${item.live ? 'hover:bg-white/6 card-lift cursor-pointer' : 'opacity-80 cursor-default'}`}
+      className={`glass rounded-2xl p-6 flex flex-col gap-4 transition-all card-lift ${item.live ? 'hover:bg-white/6 cursor-pointer' : 'opacity-80 cursor-default'}`}
       onClick={item.live ? onOpen : undefined}
       style={{ borderTop: `2px solid ${item.accent}40` }}
     >
@@ -129,7 +129,7 @@ export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan }
           </span>
         </div>
         <iframe
-          src={openPaper.href}
+          src={import.meta.env.BASE_URL + openPaper.href}
           className="flex-1 w-full relative"
           style={{ minHeight: 'calc(100vh - 48px)', border: 'none' }}
           title={openPaper.title}
@@ -236,7 +236,7 @@ export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan }
                 desc: 'Empirical study of 22,091 cross-national couples. Inverted-U relationship between ancestral cultural distance and separation probability. β₁=−0.31, β₂=0.64, ψ*=0.240.',
                 type: 'Working Paper',
                 tags: ['CPS Micro-data', 'HDFE Regression', 'Ancestral Distance'],
-                href: '/papers/relationship-longevity.pdf',
+                href: 'papers/relationship-longevity.pdf',
                 color: '#C41E3A',
               },
               {
@@ -244,14 +244,14 @@ export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan }
                 desc: 'Effect of parental ancestral diversity on child wages, educational attainment, creativity, and focus. Inverted-U pattern consistent across all four outcomes.',
                 type: 'Working Paper',
                 tags: ['ACS Data', 'NLSY', 'Intergenerational'],
-                href: '/papers/child-well-being.pdf',
+                href: 'papers/child-well-being.pdf',
                 color: '#D4AF37',
               },
             ].map((p, i) => (
               <button
                 key={i}
                 onClick={() => setOpenPaper(p)}
-                className="glass rounded-2xl p-6 flex flex-col gap-3 hover:bg-white/6 card-lift transition-all group text-left w-full"
+                className="glass rounded-2xl p-6 flex flex-col gap-3 hover:bg-white/6 card-lift transition-all group text-left w-full cursor-pointer"
                 style={{ borderTop: `2px solid ${p.color}40` }}
               >
                 <div className="flex items-start justify-between gap-2">
