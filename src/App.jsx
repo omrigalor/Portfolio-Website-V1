@@ -1,160 +1,187 @@
 import { useState } from 'react';
+import Portfolio from './components/Portfolio';
 import AutoDemo from './components/AutoDemo';
 import ProfileInput from './components/ProfileInput';
+import InsightsPage from './components/InsightsPage';
+import MarketValidation from './components/MarketValidation';
+import AttritionApp from './components/AttritionApp';
+import LoanApp from './components/LoanApp';
 
-function StatCard({ value, label }) {
+// ─── Tab bar ──────────────────────────────────────────────────────────────────
+
+const TABS = [
+  { id: 'home',     label: 'Home',     icon: '⌂' },
+  { id: 'demo',     label: 'Demo',     icon: '▶' },
+  { id: 'match',    label: 'Match',    icon: '⊕' },
+  { id: 'insights', label: 'Insights', icon: '◈' },
+  { id: 'market',   label: 'Market',   icon: '◆' },
+];
+
+function TabBar({ active, onChange, onBack }) {
   return (
-    <div className="text-center">
-      <div className="text-3xl md:text-4xl font-bold text-white mb-1">{value}</div>
-      <div className="text-xs text-white/35">{label}</div>
+    <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/10"
+      style={{ background: 'rgba(10,10,15,0.97)', backdropFilter: 'blur(20px)' }}>
+      <div className="max-w-5xl mx-auto flex">
+        <button
+          onClick={onBack}
+          className="flex flex-col items-center justify-center py-3 px-4 gap-1 transition-all text-white/38 hover:text-white/70 border-r border-white/8"
+          title="Back to portfolio"
+        >
+          <span className="text-base leading-none">←</span>
+          <span className="text-xs tracking-wide">Portfolio</span>
+        </button>
+        {TABS.filter(t => t.id !== 'home').map(t => {
+          const isActive = active === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => onChange(t.id)}
+              className="relative flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-all"
+              style={{ color: isActive ? '#C41E3A' : 'rgba(255,255,255,0.35)' }}
+            >
+              <span className="text-base leading-none">{t.icon}</span>
+              <span className="text-xs font-medium tracking-wide">{t.label}</span>
+              {isActive && (
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 w-10 rounded-full"
+                  style={{ background: '#C41E3A', boxShadow: '0 0 8px rgba(196,30,58,0.8)' }} />
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
-function FeatureCard({ icon, title, description }) {
-  return (
-    <div className="glass rounded-2xl p-6 space-y-3 hover:bg-white/6 transition-colors">
-      <div className="text-2xl">{icon}</div>
-      <h3 className="text-sm font-semibold text-white">{title}</h3>
-      <p className="text-xs text-white/45 leading-relaxed">{description}</p>
-    </div>
-  );
-}
+// ─── Reprium home (choose Demo or Match) ─────────────────────────────────────
 
-function Landing({ onDemo, onManual }) {
+function RepriumHome({ onDemo, onMatch, onBack }) {
   return (
-    <div className="min-h-screen bg-premium flex flex-col">
+    <div className="min-h-screen bg-premium flex flex-col items-center justify-center px-6 pb-24">
       <div className="absolute inset-0 bg-glow-red pointer-events-none" />
       <div className="absolute inset-0 bg-glow-gold pointer-events-none" />
 
-      {/* Navigation bar */}
-      <nav className="relative flex items-center justify-between px-6 py-4 border-b border-white/5">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm"
-            style={{ background: 'rgba(196,30,58,0.2)', border: '1px solid rgba(196,30,58,0.4)', color: '#C41E3A' }}>
-            R
-          </div>
-          <span className="font-display text-lg text-white font-semibold tracking-tight">Reprium</span>
-        </div>
-        <div className="hidden md:flex items-center gap-6 text-xs text-white/40">
-          <span>Science-Based Fortune Teller</span>
-        </div>
-        <button
-          onClick={onManual}
-          className="text-xs border border-white/15 text-white/60 hover:text-white/80 hover:border-white/25 px-4 py-2 rounded-full transition-colors"
-        >
-          Try Manual Mode
-        </button>
-      </nav>
-
-      {/* Hero */}
-      <div className="relative flex-1 flex flex-col items-center justify-center text-center px-6 py-20">
-        <div className="max-w-4xl mx-auto space-y-8">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 text-xs text-white/60 border border-white/10 animate-fade-in">
+      <div className="relative max-w-xl w-full text-center space-y-8">
+        <div>
+          <div className="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 text-xs text-white/70 border border-white/10 mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-            Science-based compatibility modeling · Research-grade coefficients
+            US 11,847,293 B2 · Patent
           </div>
-
-          {/* Title */}
-          <div className="animate-fade-in-up delay-100">
-            <h1 className="font-display text-5xl md:text-7xl lg:text-8xl text-white leading-none tracking-tight mb-4">
-              Reprium
-              <br />
-              <span className="text-gradient-red">Compatibility</span>
-              <br />
-              <span className="text-4xl md:text-5xl lg:text-6xl text-white/60 font-normal italic">Engine</span>
-            </h1>
-          </div>
-
-          {/* Subtitle */}
-          <p className="text-base md:text-lg text-white/45 max-w-xl mx-auto leading-relaxed animate-fade-in-up delay-200">
-            Science-based relationship and offspring prediction. Reprium maps where a couple sits on the cultural synergy curve.
+          <h1 className="font-display text-4xl md:text-5xl text-white mb-3 tracking-tight">Reprium</h1>
+          <p className="text-sm text-white/65 leading-relaxed max-w-sm mx-auto">
+            Predictive Algorithm for Relationship Longevity & Offspring Prosperity. Science-based compatibility powered by ancestral migratory distance.
           </p>
+        </div>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up delay-300">
-            <button
-              onClick={onDemo}
-              className="group relative px-8 py-4 rounded-2xl text-white font-semibold text-sm transition-all hover:scale-105 hover:shadow-2xl min-w-52"
-              style={{
-                background: 'linear-gradient(135deg, #C41E3A 0%, #8B0000 100%)',
-                boxShadow: '0 4px 30px rgba(196,30,58,0.35)',
-              }}
-            >
-              <span className="flex items-center gap-2 justify-center">
-                <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                Watch Auto Demo
-              </span>
-              <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ background: 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1), transparent)' }} />
-            </button>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <button
+            onClick={onDemo}
+            className="px-8 py-4 rounded-2xl text-white font-semibold text-sm transition-all hover:scale-105"
+            style={{ background: 'linear-gradient(135deg, #C41E3A, #8B0000)', boxShadow: '0 4px 30px rgba(196,30,58,0.4)' }}
+          >
+            <span className="flex items-center gap-2 justify-center">
+              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+              Watch Demo
+            </span>
+          </button>
+          <button
+            onClick={onMatch}
+            className="px-8 py-4 rounded-2xl text-white/80 font-semibold text-sm border border-white/15 hover:border-white/30 hover:text-white hover:bg-white/5 transition-all"
+          >
+            Enter Your Match
+          </button>
+        </div>
 
-            <button
-              onClick={onManual}
-              className="px-8 py-4 rounded-2xl text-white/80 font-semibold text-sm border border-white/15 hover:border-white/30 hover:text-white hover:bg-white/5 transition-all min-w-52"
-            >
-              Enter Your Own Match
-            </button>
-          </div>
-
-          {/* Stats */}
-          <div className="flex items-center justify-center gap-8 md:gap-14 pt-6 animate-fade-in-up delay-500">
-            <StatCard value="~1M" label="Couples analyzed" />
-            <div className="w-px h-10 bg-white/10" />
-            <StatCard value="2,000+" label="Ancestry pairs" />
-            <div className="w-px h-10 bg-white/10" />
-            <StatCard value="30yr" label="CPS data (1994–2024)" />
-          </div>
+        <div className="flex items-center justify-center gap-10 pt-2">
+          {[
+            { value: '839k', label: 'Couples analyzed' },
+            { value: '120', label: 'Countries' },
+            { value: 'ψ*=0.24', label: 'Optimal distance' },
+          ].map(s => (
+            <div key={s.label} className="text-center">
+              <p className="text-xl font-bold font-mono text-white">{s.value}</p>
+              <p className="text-xs text-white/50">{s.label}</p>
+            </div>
+          ))}
         </div>
       </div>
-
-      {/* Feature cards */}
-      <div className="relative max-w-5xl mx-auto px-6 pb-16 w-full">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 animate-fade-in-up delay-700">
-          <FeatureCard
-            icon="📐"
-            title="Relationship Synergy Score"
-            description="Ranked 0–100 based on cultural distance, age, education, and ancestry fixed effects. The strongest matches are not always the most similar or the most different."
-          />
-          <FeatureCard
-            icon="👶"
-            title="Child Well-Being Prediction"
-            description="Prosperity, educational attainment, creativity, and focus scores based on parental cultural distance. An intermediate mix delivers peak outcomes."
-          />
-          <FeatureCard
-            icon="⚖️"
-            title="Spark vs. Cohesion Tradeoff"
-            description="Balanced cultural distance creates both cohesion and spark. Reprium identifies the optimal zone where both thrive."
-          />
-        </div>
-      </div>
-
-      {/* Quote banner */}
-      <div className="relative border-t border-white/5 py-8 px-6">
-        <div className="max-w-3xl mx-auto text-center">
-          <blockquote className="text-sm md:text-base text-white/40 italic leading-relaxed font-display">
-            "An intermediate level of cultural dissimilarity strikes the ideal balance — sufficient similarities for cohesion and enough differences for spark."
-          </blockquote>
-          <p className="text-xs text-white/20 mt-3">— Reprium Research</p>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <footer className="relative border-t border-white/5 py-6 px-6 text-center">
-        <p className="text-xs text-white/20 max-w-2xl mx-auto">
-          Prototype demonstration only. Scores are illustrative and based on simplified coefficients inspired by Reprium research, not the full proprietary model.
-        </p>
-      </footer>
     </div>
   );
 }
 
+// ─── Coming-soon model landing ────────────────────────────────────────────────
+
+function ModelComingSoon({ name, patentNo, desc, accent, onBack }) {
+  return (
+    <div className="min-h-screen bg-premium flex flex-col items-center justify-center px-6 pb-24">
+      <div className="absolute inset-0 pointer-events-none"
+        style={{ background: `radial-gradient(ellipse 60% 50% at 50% 0%, ${accent}12, transparent)` }} />
+      <div className="relative max-w-xl w-full text-center space-y-6">
+        <div className="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 text-xs border border-white/10 mb-2"
+          style={{ color: accent }}>
+          {patentNo} · Patent
+        </div>
+        <h1 className="font-display text-3xl md:text-4xl text-white tracking-tight">{name}</h1>
+        <p className="text-sm text-white/65 leading-relaxed">{desc}</p>
+        <div className="glass rounded-2xl p-6 border" style={{ borderColor: accent + '30' }}>
+          <p className="text-sm font-semibold text-white/70 mb-1">Model in Development</p>
+          <p className="text-xs text-white/50 leading-relaxed">
+            Empirical validation underway. The model applies the same Intra-Ancestral Divergence framework established in the Relationship Longevity paper to this domain.
+          </p>
+        </div>
+        <button
+          onClick={onBack}
+          className="text-xs text-white/58 hover:text-white/70 border border-white/10 hover:border-white/20 px-5 py-2 rounded-full transition-all"
+        >
+          ← Back to Portfolio
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Reprium app shell ────────────────────────────────────────────────────────
+
+function RepriumApp({ onBack }) {
+  const [tab, setTab] = useState('home');
+
+  if (tab === 'home') return <RepriumHome onDemo={() => setTab('demo')} onMatch={() => setTab('match')} onBack={onBack} />;
+
+  return (
+    <div className="min-h-screen bg-premium pb-20">
+      <div className="absolute inset-0 bg-glow-red pointer-events-none" />
+      <div className="absolute inset-0 bg-glow-gold pointer-events-none" />
+      <div className="relative">
+        {tab === 'demo'     && <AutoDemo     onExit={() => setTab('home')} hideBack />}
+        {tab === 'match'    && <ProfileInput onExit={() => setTab('home')} hideBack />}
+        {tab === 'insights' && <InsightsPage onExit={() => setTab('home')} hideBack />}
+        {tab === 'market'   && (
+          <div className="max-w-5xl mx-auto px-4 py-8">
+            <MarketValidation />
+          </div>
+        )}
+      </div>
+      <TabBar active={tab} onChange={setTab} onBack={onBack} />
+    </div>
+  );
+}
+
+// ─── Root ─────────────────────────────────────────────────────────────────────
+
 export default function App() {
-  const [mode, setMode] = useState('landing'); // 'landing' | 'demo' | 'manual'
+  const [mode, setMode] = useState('portfolio');
 
-  if (mode === 'demo') return <AutoDemo onExit={() => setMode('landing')} />;
-  if (mode === 'manual') return <ProfileInput onExit={() => setMode('landing')} />;
+  if (mode === 'reprium')   return <RepriumApp onBack={() => setMode('portfolio')} />;
 
-  return <Landing onDemo={() => setMode('demo')} onManual={() => setMode('manual')} />;
+  if (mode === 'attrition') return <AttritionApp onBack={() => setMode('portfolio')} />;
+
+  if (mode === 'loan') return <LoanApp onBack={() => setMode('portfolio')} />;
+
+  return (
+    <Portfolio
+      onOpenReprium={()   => setMode('reprium')}
+      onOpenAttrition={() => setMode('attrition')}
+      onOpenLoan={()      => setMode('loan')}
+    />
+  );
 }

@@ -1,23 +1,119 @@
-import { useState } from 'react';
-import { ANCESTRIES, EDUCATION_OPTIONS } from '../data/ancestries';
+import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { COUNTRIES, EDUCATION_OPTIONS } from '../data/countries';
 import { computeFullScore } from '../lib/scoring';
 import ResultsDashboard from './ResultsDashboard';
 import CalculationEngine from './CalculationEngine';
 
-const DEFAULT_PERSON = {
-  name: '',
-  age: '',
-  education: 'college',
-  ancestry1: 'british',
-  ancestry2: '',
-};
+const DEFAULT_PERSON = { name: '', age: '', education: 'college', country1: 'GBR', country2: '' };
 
+// ─── Searchable country combobox ─────────────────────────────────────────────
+function CountrySelect({ value, onChange, placeholder = 'Search country…' }) {
+  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
+  const [dropdownStyle, setDropdownStyle] = useState({});
+  const triggerRef = useRef(null);
+  const ref = useRef(null);
+
+  const selected = COUNTRIES.find(c => c.isoCode === value);
+
+  const filtered = query.length === 0
+    ? COUNTRIES
+    : COUNTRIES.filter(c =>
+        c.label.toLowerCase().includes(query.toLowerCase()) ||
+        c.region.toLowerCase().includes(query.toLowerCase()) ||
+        c.isoCode.toLowerCase().includes(query.toLowerCase())
+      );
+
+  useEffect(() => {
+    function handleClick(e) {
+      if (ref.current && !ref.current.contains(e.target) &&
+          triggerRef.current && !triggerRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  function handleOpen() {
+    if (triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      setDropdownStyle({
+        position: 'fixed',
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+        zIndex: 99999,
+      });
+    }
+    setOpen(o => !o);
+    setQuery('');
+  }
+
+  const dropdown = open && (
+    <div
+      ref={ref}
+      style={dropdownStyle}
+      className="bg-slate-900 border border-white/15 rounded-lg shadow-2xl overflow-hidden"
+    >
+      <div className="p-2 border-b border-white/10">
+        <input
+          autoFocus
+          type="text"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder="Type to search…"
+          className="w-full bg-white/5 rounded px-3 py-1.5 text-sm text-white placeholder-white/30 outline-none"
+        />
+      </div>
+      <div className="overflow-y-auto max-h-56">
+        {value && (
+          <div
+            className="px-4 py-2 text-xs text-white/30 hover:bg-white/5 cursor-pointer"
+            onClick={() => { onChange(''); setOpen(false); setQuery(''); }}
+          >
+            — Clear selection —
+          </div>
+        )}
+        {filtered.length === 0 && (
+          <div className="px-4 py-3 text-xs text-white/30">No countries found</div>
+        )}
+        {filtered.map(c => (
+          <div
+            key={c.isoCode}
+            onClick={() => { onChange(c.isoCode); setOpen(false); setQuery(''); }}
+            className={`px-4 py-2 text-sm cursor-pointer flex items-center justify-between gap-2 transition-colors ${c.isoCode === value ? 'text-white bg-white/8' : 'text-white/70 hover:bg-white/5'}`}
+          >
+            <span>{c.label}</span>
+            <span className="text-white/30 text-xs shrink-0">{c.region}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  return (
+    <div>
+      <div
+        ref={triggerRef}
+        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white cursor-pointer flex items-center justify-between gap-2 hover:border-white/20 transition-colors"
+        onClick={handleOpen}
+      >
+        <span className={selected ? 'text-white' : 'text-white/25'}>
+          {selected ? `${selected.label} — ${selected.region}` : placeholder}
+        </span>
+        <span className="text-white/30 text-xs shrink-0">{open ? '▲' : '▼'}</span>
+      </div>
+      {typeof document !== 'undefined' && createPortal(dropdown, document.body)}
+    </div>
+  );
+}
+
+// ─── Person form ──────────────────────────────────────────────────────────────
 function PersonForm({ data, onChange, label, accentColor, side }) {
   return (
-    <div
-      className="glass rounded-2xl p-6 space-y-5"
-      style={{ borderTop: `2px solid ${accentColor}40` }}
-    >
+    <div className="glass rounded-2xl p-6 space-y-5" style={{ borderTop: `2px solid ${accentColor}40` }}>
       <div className="flex items-center gap-3 mb-1">
         <div
           className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold"
@@ -28,7 +124,6 @@ function PersonForm({ data, onChange, label, accentColor, side }) {
         <h3 className="text-sm font-semibold text-white/80">{label}</h3>
       </div>
 
-      {/* Name */}
       <div className="space-y-1.5">
         <label className="text-xs text-white/40 font-medium">Name</label>
         <input
@@ -40,21 +135,18 @@ function PersonForm({ data, onChange, label, accentColor, side }) {
         />
       </div>
 
-      {/* Age */}
       <div className="space-y-1.5">
         <label className="text-xs text-white/40 font-medium">Age</label>
         <input
           type="number"
           value={data.age}
           onChange={e => onChange({ ...data, age: Number(e.target.value) })}
-          placeholder="e.g. 25"
-          min="18"
-          max="80"
+          placeholder="e.g. 28"
+          min="18" max="80"
           className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-white/20 focus:outline-none focus:border-white/25 transition-colors"
         />
       </div>
 
-      {/* Education */}
       <div className="space-y-1.5">
         <label className="text-xs text-white/40 font-medium">Education</label>
         <select
@@ -68,48 +160,38 @@ function PersonForm({ data, onChange, label, accentColor, side }) {
         </select>
       </div>
 
-      {/* Primary ancestry */}
       <div className="space-y-1.5">
-        <label className="text-xs text-white/40 font-medium">Primary Ancestry</label>
-        <select
-          value={data.ancestry1}
-          onChange={e => onChange({ ...data, ancestry1: e.target.value })}
-          className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-white/25 transition-colors"
-        >
-          {ANCESTRIES.map(a => (
-            <option key={a.id} value={a.id}>{a.label} — {a.region}</option>
-          ))}
-        </select>
+        <label className="text-xs text-white/40 font-medium">Primary Country of Ancestry</label>
+        <CountrySelect
+          value={data.country1}
+          onChange={v => onChange({ ...data, country1: v })}
+          placeholder="Select country…"
+        />
       </div>
 
-      {/* Secondary ancestry (optional) */}
       <div className="space-y-1.5">
         <label className="text-xs text-white/40 font-medium">
-          Secondary Ancestry <span className="text-white/20">(optional)</span>
+          Secondary Country <span className="text-white/20">(optional — mixed heritage)</span>
         </label>
-        <select
-          value={data.ancestry2}
-          onChange={e => onChange({ ...data, ancestry2: e.target.value })}
-          className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-white/25 transition-colors"
-        >
-          <option value="">— None —</option>
-          {ANCESTRIES.map(a => (
-            <option key={a.id} value={a.id}>{a.label} — {a.region}</option>
-          ))}
-        </select>
+        <CountrySelect
+          value={data.country2}
+          onChange={v => onChange({ ...data, country2: v })}
+          placeholder="— None —"
+        />
       </div>
     </div>
   );
 }
 
-export default function ProfileInput({ onExit }) {
-  const [personA, setPersonA] = useState({ ...DEFAULT_PERSON, name: '', ancestry1: 'british' });
-  const [personB, setPersonB] = useState({ ...DEFAULT_PERSON, name: '', ancestry1: 'german' });
+// ─── Main component ───────────────────────────────────────────────────────────
+export default function ProfileInput({ onExit, hideBack = false }) {
+  const [personA, setPersonA] = useState({ ...DEFAULT_PERSON, name: '', country1: 'GBR' });
+  const [personB, setPersonB] = useState({ ...DEFAULT_PERSON, name: '', country1: 'DEU' });
   const [result, setResult] = useState(null);
   const [showCalc, setShowCalc] = useState(false);
 
-  const ancestriesA = [personA.ancestry1, personA.ancestry2].filter(Boolean);
-  const ancestriesB = [personB.ancestry1, personB.ancestry2].filter(Boolean);
+  const ancestriesA = [personA.country1, personA.country2].filter(Boolean);
+  const ancestriesB = [personB.country1, personB.country2].filter(Boolean);
 
   const handleCompute = () => {
     const res = computeFullScore({
@@ -127,7 +209,13 @@ export default function ProfileInput({ onExit }) {
     }, 100);
   };
 
-  const isValid = personA.ancestry1 && personB.ancestry1;
+  const isValid = personA.country1 && personB.country1;
+
+  const liveScore = isValid ? computeFullScore({
+    ancestriesA, ancestriesB,
+    ageA: Number(personA.age) || 28, ageB: Number(personB.age) || 28,
+    eduA: personA.education, eduB: personB.education,
+  }) : null;
 
   return (
     <div className="min-h-screen bg-premium">
@@ -135,7 +223,6 @@ export default function ProfileInput({ onExit }) {
       <div className="absolute inset-0 bg-glow-gold pointer-events-none" />
 
       <div className="relative max-w-7xl mx-auto px-4 py-8">
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-red-700/20 border border-red-700/40 flex items-center justify-center">
@@ -146,12 +233,11 @@ export default function ProfileInput({ onExit }) {
               <p className="text-xs text-white/30">Manual Match Input</p>
             </div>
           </div>
-          <button
-            onClick={onExit}
-            className="text-xs text-white/40 hover:text-white/70 transition-colors border border-white/10 hover:border-white/20 px-4 py-2 rounded-full"
-          >
-            ← Back
-          </button>
+          {!hideBack && (
+            <button onClick={onExit} className="text-xs text-white/40 hover:text-white/70 transition-colors border border-white/10 hover:border-white/20 px-4 py-2 rounded-full">
+              ← Back
+            </button>
+          )}
         </div>
 
         <div className="text-center mb-8">
@@ -159,70 +245,36 @@ export default function ProfileInput({ onExit }) {
           <p className="text-sm text-white/40">Fill in both profiles to compute your Relationship Synergy Score</p>
         </div>
 
-        {/* Profiles */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <PersonForm data={personA} onChange={setPersonA} label="Person A" accentColor="#C41E3A" side="A" />
           <PersonForm data={personB} onChange={setPersonB} label="Person B" accentColor="#3b82f6" side="B" />
         </div>
 
-        {/* Live preview */}
         {isValid && (
-          <div className="glass rounded-2xl p-5 mb-6 flex flex-col md:flex-row md:items-center gap-4">
-            <div className="flex-1">
-              <p className="text-xs text-white/40 mb-1">Cultural Distance Preview</p>
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-bold font-mono text-white">
-                  {computeFullScore({ ancestriesA, ancestriesB, ageA: Number(personA.age)||28, ageB: Number(personB.age)||28, eduA: personA.education, eduB: personB.education }).psi.toFixed(3)}
-                </span>
-                <span className="text-white/40 text-sm">ψ</span>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowCalc(v => !v)}
-                className="text-xs border border-white/15 text-white/60 hover:text-white/80 hover:border-white/25 px-4 py-2 rounded-full transition-colors"
-              >
-                {showCalc ? 'Hide' : 'Show'} Calculation
-              </button>
-              <button
-                onClick={handleCompute}
-                className="px-6 py-2 rounded-full text-sm font-semibold text-white transition-all hover:scale-105"
-                style={{
-                  background: 'linear-gradient(135deg, #C41E3A, #8B0000)',
-                  boxShadow: '0 4px 20px rgba(196,30,58,0.4)',
-                }}
-              >
-                Compute Score →
-              </button>
-            </div>
+          <div className="flex justify-center mb-6">
+            <button
+              onClick={handleCompute}
+              className="px-10 py-3 rounded-2xl text-sm font-semibold text-white transition-all hover:scale-105"
+              style={{ background: 'linear-gradient(135deg, #C41E3A, #8B0000)', boxShadow: '0 4px 20px rgba(196,30,58,0.4)' }}
+            >
+              Compute Compatibility Score →
+            </button>
           </div>
         )}
 
-        {/* Inline calculation */}
-        {showCalc && isValid && (
+        {showCalc && isValid && liveScore && (
           <div className="glass rounded-2xl p-6 mb-6 animate-scale-in">
             <h3 className="text-sm font-semibold text-white/60 mb-4 uppercase tracking-widest">Step-by-Step Calculation</h3>
-            <CalculationEngine
-              result={computeFullScore({
-                ancestriesA,
-                ancestriesB,
-                ageA: Number(personA.age)||28,
-                ageB: Number(personB.age)||28,
-                eduA: personA.education,
-                eduB: personB.education,
-              })}
-              revealStep={6}
-            />
+            <CalculationEngine result={liveScore} revealStep={6} />
           </div>
         )}
 
         {!isValid && (
           <div className="text-center py-8 text-white/25 text-sm">
-            Select ancestries for both people to compute compatibility
+            Select countries for both people to compute compatibility
           </div>
         )}
 
-        {/* Results */}
         {result && (
           <div id="results-section" className="animate-fade-in-up">
             <div className="flex items-center gap-3 mb-6">

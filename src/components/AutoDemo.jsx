@@ -7,9 +7,9 @@ const DEMO_PERSON_A = {
   name: 'Elizabeth',
   age: 25,
   education: 'college',
-  ancestries: ['british'],
+  ancestries: ['GBR'],
   educationLabel: 'College Graduate',
-  ancestriesLabel: 'British',
+  ancestriesLabel: 'United Kingdom',
   region: 'Western Europe',
 };
 
@@ -17,9 +17,9 @@ const DEMO_PERSON_B = {
   name: 'Johann',
   age: 27,
   education: 'phd',
-  ancestries: ['german', 'polish'],
+  ancestries: ['DEU', 'POL'],
   educationLabel: 'PhD',
-  ancestriesLabel: 'German · Polish',
+  ancestriesLabel: 'Germany · Poland',
   region: 'Central / Eastern Europe',
 };
 
@@ -47,7 +47,7 @@ function ProfileField({ label, value, show }) {
   if (!show) return null;
   return (
     <div className="flex items-start gap-2 animate-fade-in-up text-sm">
-      <span className="text-white/35 w-20 shrink-0 pt-0.5">{label}</span>
+      <span className="text-white/50 w-20 shrink-0 pt-0.5">{label}</span>
       <span className="text-white font-medium">{value}</span>
     </div>
   );
@@ -82,7 +82,7 @@ function ProfileCard({ person, fieldsVisible, side, pulse }) {
           {fieldsVisible >= 2
             ? <p className="font-semibold text-white animate-fade-in">{person.name}</p>
             : <p className="text-white/20 text-sm">Loading…</p>}
-          <p className="text-xs text-white/30">Person {side}</p>
+          <p className="text-xs text-white/45">Person {side}</p>
         </div>
       </div>
 
@@ -108,12 +108,12 @@ function StepIndicator({ step, label, active, done }) {
       >
         {done ? '✓' : step}
       </div>
-      <span className={`text-xs ${active ? 'text-white' : 'text-white/40'}`}>{label}</span>
+      <span className={`text-xs ${active ? 'text-white' : 'text-white/58'}`}>{label}</span>
     </div>
   );
 }
 
-export default function AutoDemo({ onExit }) {
+export default function AutoDemo({ onExit, hideBack = false }) {
   const [demoStep, setDemoStep] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const timersRef = useRef([]);
@@ -189,15 +189,14 @@ export default function AutoDemo({ onExit }) {
             </div>
             <div>
               <h1 className="font-display text-xl font-semibold text-white">Reprium</h1>
-              <p className="text-xs text-white/30">Compatibility Engine — Live Demo</p>
+              <p className="text-xs text-white/45">Compatibility Engine — Live Demo</p>
             </div>
           </div>
-          <button
-            onClick={onExit}
-            className="text-xs text-white/40 hover:text-white/70 transition-colors border border-white/10 hover:border-white/20 px-4 py-2 rounded-full"
-          >
-            ← Back
-          </button>
+          {!hideBack && (
+            <button onClick={onExit} className="text-xs text-white/58 hover:text-white/70 transition-colors border border-white/10 hover:border-white/20 px-4 py-2 rounded-full">
+              ← Back
+            </button>
+          )}
         </div>
 
         {/* Progress steps */}
@@ -211,7 +210,7 @@ export default function AutoDemo({ onExit }) {
         <div className={`grid gap-6 mb-8 ${showCalcPanel ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 max-w-2xl mx-auto'}`}>
           {/* Profiles column */}
           <div className="space-y-4">
-            <h2 className="text-sm font-semibold text-white/50 uppercase tracking-widest">Profiles</h2>
+            <h2 className="text-sm font-semibold text-white/70 uppercase tracking-widest">Profiles</h2>
 
             {demoStep >= 1 && (
               <ProfileCard
@@ -234,22 +233,22 @@ export default function AutoDemo({ onExit }) {
             {/* ψ highlight card */}
             {demoStep >= 10 && (
               <div className="glass-strong rounded-2xl p-5 animate-scale-in border border-red-700/20">
-                <p className="text-xs text-white/40 mb-3 font-mono">Cultural Distance</p>
+                <p className="text-xs text-white/58 mb-3 font-mono">Cultural Distance</p>
                 <div className="flex items-baseline gap-3">
                   <span className="text-4xl font-bold text-white font-mono">{result.psi.toFixed(3)}</span>
                   <div>
-                    <p className="text-xs text-white/50">ψ (psi)</p>
-                    <p className="text-xs text-white/30">vs optimal {result.optimalPsi}</p>
+                    <p className="text-xs text-white/70">ψ (psi)</p>
+                    <p className="text-xs text-white/45">vs optimal {result.optimalPsi}</p>
                   </div>
                 </div>
                 {demoStep >= 11 && (
                   <div className="mt-3 flex items-baseline gap-3 animate-fade-in">
                     <span className="text-2xl font-bold text-white/70 font-mono">{result.psi2.toFixed(5)}</span>
-                    <p className="text-xs text-white/40">ψ² = ψ²</p>
+                    <p className="text-xs text-white/58">ψ² = ψ²</p>
                   </div>
                 )}
-                <div className="mt-3 text-xs text-white/30">
-                  British × {DEMO_PERSON_B.ancestriesLabel} · {result.isYoung ? 'Under-30 model' : 'Full model'}
+                <div className="mt-3 text-xs text-white/45">
+                  {DEMO_PERSON_A.ancestriesLabel} × {DEMO_PERSON_B.ancestriesLabel} · {result.isYoung ? 'Under-30 model' : 'Full model'}
                 </div>
               </div>
             )}
@@ -258,7 +257,7 @@ export default function AutoDemo({ onExit }) {
           {/* Calculation column */}
           {showCalcPanel && (
             <div className="animate-slide-right">
-              <h2 className="text-sm font-semibold text-white/50 uppercase tracking-widest mb-4">Calculation</h2>
+              <h2 className="text-sm font-semibold text-white/70 uppercase tracking-widest mb-4">Calculation</h2>
               <CalculationEngine
                 result={result}
                 revealStep={
@@ -279,27 +278,32 @@ export default function AutoDemo({ onExit }) {
           <div className="glass-strong rounded-2xl p-6 mb-8 animate-scale-in border border-red-700/20">
             <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
               <div>
-                <p className="text-xs text-white/40 mb-1 tracking-widest uppercase">Relationship Synergy Score</p>
+                <p className="text-xs text-white/58 mb-1 tracking-widest uppercase">Conditional Survival</p>
                 <div className="flex items-baseline gap-2">
                   <span className="text-6xl font-bold text-white">{result.score}</span>
-                  <span className="text-2xl text-white/30">/100</span>
+                  <span className="text-2xl text-white/45">/100</span>
                 </div>
+                <p className="text-xs text-white/45 mt-1">Given they marry</p>
+              </div>
+              <div className="text-white/20 text-2xl hidden md:block">×</div>
+              <div className="text-center">
+                <p className="text-xs text-white/58 mb-1 tracking-widest uppercase">Marriage Prob.</p>
+                <p className="text-3xl font-bold" style={{ color: '#f59e0b' }}>
+                  {Math.round((result.marriageProb ?? 1) * 100)}%
+                </p>
+                <p className="text-xs text-white/45 mt-1">vs same-group baseline</p>
+              </div>
+              <div className="text-white/20 text-2xl hidden md:block">=</div>
+              <div className="text-center">
+                <p className="text-xs text-white/58 mb-1 tracking-widest uppercase">Market Score</p>
+                <p className="text-3xl font-bold" style={{ color: '#C41E3A' }}>{result.marketScore}</p>
+                <p className="text-xs text-white/45 mt-1">Adjusted</p>
               </div>
               <div className="h-16 w-px bg-white/10 hidden md:block" />
-              <div className="text-left space-y-1">
-                <p className="text-white/80 text-sm leading-relaxed">
-                  {DEMO_PERSON_A.name} and {DEMO_PERSON_B.name} are positioned{' '}
-                  {Math.abs(result.psi - result.optimalPsi) < 0.03 ? 'near the optimal cultural distance' :
-                   result.psi < result.optimalPsi ? 'slightly below the optimal cultural distance' :
-                   'above the optimal cultural distance'} for their age cohort.
-                </p>
-                <p className="text-white/40 text-xs">
-                  Separation risk: {result.B_hat.toFixed(4)} · Optimal ψ* = {result.optimalPsi}
-                </p>
-              </div>
               <div className="md:ml-auto text-center">
+                <p className="text-xs text-white/58 mb-1 tracking-widest uppercase">Overall</p>
                 <p className="text-3xl font-bold" style={{ color: '#D4AF37' }}>{result.overall}</p>
-                <p className="text-xs text-white/40">Overall</p>
+                <p className="text-xs text-white/45 mt-1">Rel. + Child</p>
               </div>
             </div>
           </div>
@@ -310,7 +314,7 @@ export default function AutoDemo({ onExit }) {
           <div className="animate-fade-in-up">
             <div className="flex items-center gap-3 mb-6">
               <div className="h-px flex-1 bg-white/5" />
-              <h2 className="text-sm font-semibold text-white/50 uppercase tracking-widest px-4">Full Results Dashboard</h2>
+              <h2 className="text-sm font-semibold text-white/70 uppercase tracking-widest px-4">Full Results Dashboard</h2>
               <div className="h-px flex-1 bg-white/5" />
             </div>
             <ResultsDashboard

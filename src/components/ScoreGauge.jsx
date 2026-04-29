@@ -52,11 +52,12 @@ export default function ScoreGauge({ score, label, sublabel, color = '#C41E3A', 
   const fgSpan = sweepDeg * (displayed / 100);
   const fgPath = fgSpan > 0 ? describeArc(startAngle, startAngle + fgSpan) : null;
 
-  // Score color
+  // Score color — always score-based, never uses the passed color
   const scoreColor =
-    displayed >= 80 ? '#22c55e' :
-    displayed >= 60 ? color :
-    displayed >= 40 ? '#f59e0b' : '#ef4444';
+    displayed >= 75 ? '#22c55e' :
+    displayed >= 55 ? '#84cc16' :
+    displayed >= 40 ? '#f59e0b' :
+    displayed >= 25 ? '#fb923c' : '#ef4444';
 
   return (
     <div className="flex flex-col items-center gap-1">
@@ -127,9 +128,10 @@ export function ScoreBar({ score, label, color = '#C41E3A', animate = true }) {
   }, [score, animate]);
 
   const barColor =
-    score >= 80 ? '#22c55e' :
-    score >= 60 ? color :
-    score >= 40 ? '#f59e0b' : '#ef4444';
+    score >= 75 ? '#22c55e' :
+    score >= 55 ? '#84cc16' :
+    score >= 40 ? '#f59e0b' :
+    score >= 25 ? '#fb923c' : '#ef4444';
 
   return (
     <div className="w-full">
