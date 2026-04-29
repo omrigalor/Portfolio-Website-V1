@@ -243,7 +243,7 @@ export const ISO_TO_GROUP = {
   AFG:'south_asian', ALB:'eastern_european', ARE:'arab', ARG:'latin_american', ARM:'persian',
   AUS:'british',     AUT:'german',           BEL:'french',        BGD:'south_asian', BLR:'eastern_european',
   BLZ:'latin_american', BOL:'latin_american', BRA:'latin_american', CAN:'british',   CHE:'german',
-  CHL:'latin_american', CHN:'east_asian',     COL:'latin_american', CPV:'african',   CRI:'latin_american',
+  CHL:'latin_american', CHN:'east_asian',     COD:'african',        COL:'latin_american', CPV:'african',   CRI:'latin_american',
   CUB:'latin_american', CYP:'greek',          CZE:'eastern_european', DEU:'german',  DNK:'scandinavian',
   DOM:'latin_american', DZA:'arab',           ECU:'latin_american', EGY:'arab',      ERI:'african',
   ESP:'spanish',     EST:'eastern_european',  ETH:'african',        FIN:'scandinavian', FJI:'southeast_asian',

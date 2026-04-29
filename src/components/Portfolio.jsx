@@ -23,70 +23,6 @@ const EmailIcon = () => (
 
 // ─── Experience data ──────────────────────────────────────────────────────────
 
-const EXPERIENCE = [
-  {
-    role: 'Co-Founder & CEO',
-    org: 'Reprium',
-    period: '2024 – 2025',
-    location: 'New York City, US',
-    desc: 'Developed & commercialized a predictive analytics platform forecasting relationship longevity & family outcomes. Secured Bumble\'s board-level acquisition review. Designed core model IP isolating the causal impact of cultural, behavioral and demographic factors.',
-    tags: ['Predictive Analytics', 'NLP', 'React', 'Stata', 'Python'],
-    accent: '#C41E3A',
-  },
-  {
-    role: 'Quantitative Analyst',
-    org: 'Deutsche Bank',
-    period: '2019 – 2023',
-    location: 'New York, NY',
-    desc: '4-year tenure building quantitative models for fixed-income derivatives and risk management. Designed real-time pricing models and systematic trading strategies across global rates desks.',
-    tags: ['Fixed Income', 'Derivatives', 'Python', 'C++', 'Risk'],
-    accent: '#3b82f6',
-  },
-  {
-    role: 'Venture Capital Analyst',
-    org: 'CICC (Morgan Stanley JV)',
-    period: '2018 – 2019',
-    location: 'Hong Kong',
-    desc: 'Evaluated early-stage technology investments at China International Capital Corporation, the flagship Morgan Stanley–CITIC joint venture. Conducted due diligence across fintech and AI sectors.',
-    tags: ['Venture Capital', 'Due Diligence', 'Fintech', 'Asia Markets'],
-    accent: '#D4AF37',
-  },
-  {
-    role: 'Research Analyst',
-    org: 'World Bank',
-    period: '2017 – 2018',
-    location: 'Washington, D.C.',
-    desc: 'Conducted empirical research on economic development, cultural diversity, and long-run growth. Co-authored policy briefs on ancestral diversity and innovation outcomes.',
-    tags: ['Development Economics', 'Empirical Research', 'Stata', 'R'],
-    accent: '#22c55e',
-  },
-  {
-    role: 'Research Analyst',
-    org: "Office of the Chief Economic Advisor, Prime Minister's Office",
-    period: '2016 – 2017',
-    location: 'Jerusalem, Israel',
-    desc: "Provided empirical and policy analysis to Israel's Chief Economic Advisor. Prepared research memos on labor markets, innovation policy, and macroeconomic forecasting.",
-    tags: ['Economic Policy', 'Macroeconomics', 'Research', 'Government'],
-    accent: '#a78bfa',
-  },
-];
-
-const EDUCATION = [
-  {
-    degree: 'BA Economics',
-    school: 'Brown University',
-    period: '2015 – 2019',
-    gpa: '4.0 / 4.0',
-    flag: '🇺🇸',
-  },
-  {
-    degree: 'MBA in AI & Big Data',
-    school: 'Reichman University (IDC)',
-    period: '2023 – 2024',
-    gpa: 'First Year',
-    flag: '🇮🇱',
-  },
-];
 
 const PATENTS = [
   {
@@ -128,27 +64,6 @@ function Tag({ label }) {
   );
 }
 
-function ExperienceCard({ item }) {
-  return (
-    <div className="glass rounded-2xl p-6 hover:bg-white/6 transition-colors border-l-2"
-      style={{ borderLeftColor: item.accent + '60' }}>
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-2 mb-3">
-        <div>
-          <h3 className="text-base font-semibold text-white">{item.role}</h3>
-          <p className="text-sm font-medium" style={{ color: item.accent }}>{item.org}</p>
-        </div>
-        <div className="text-right shrink-0">
-          <p className="text-xs text-white/70">{item.period}</p>
-          <p className="text-xs text-white/45">{item.location}</p>
-        </div>
-      </div>
-      <p className="text-sm text-white/55 leading-relaxed mb-3">{item.desc}</p>
-      <div className="flex flex-wrap gap-1.5">
-        {item.tags.map(t => <Tag key={t} label={t} />)}
-      </div>
-    </div>
-  );
-}
 
 function PatentCard({ item, onOpen }) {
   return (
@@ -316,7 +231,7 @@ export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan }
             <h2 className="text-xl font-display font-semibold text-white">Research</h2>
           </div>
           <p className="text-xs text-white/50 mb-6">Working papers, technical notes, and research presentations.</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-2xl mx-auto">
             {[
               {
                 title: 'Cultural Distance & Relationship Longevity',
@@ -354,89 +269,6 @@ export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan }
                   {p.tags.map(t => <Tag key={t} label={t} />)}
                 </div>
               </button>
-            ))}
-          </div>
-        </section>
-
-        {/* ── Resume divider ── */}
-        <div className="flex items-center gap-4 py-6">
-          <div className="h-px flex-1 bg-white/20" />
-          <span className="text-sm font-bold text-white uppercase tracking-[0.2em] px-4">Résumé</span>
-          <div className="h-px flex-1 bg-white/20" />
-        </div>
-
-        {/* ── Experience ── */}
-        <section>
-          <div className="flex items-center gap-3 mb-6">
-            <h2 className="text-xl font-display font-semibold text-white">Experience</h2>
-          </div>
-          <div className="space-y-4">
-            {EXPERIENCE.map((e, i) => <ExperienceCard key={i} item={e} />)}
-          </div>
-        </section>
-
-        {/* ── Education ── */}
-        <section>
-          <div className="flex items-center gap-3 mb-6">
-            <h2 className="text-xl font-display font-semibold text-white">Education</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {EDUCATION.map((e, i) => (
-              <div key={i} className="glass rounded-2xl p-6 flex items-start gap-4">
-                <div className="text-3xl shrink-0">{e.flag}</div>
-                <div>
-                  <h3 className="text-sm font-semibold text-white">{e.degree}</h3>
-                  <p className="text-sm text-white/70 mt-0.5">{e.school}</p>
-                  <div className="flex items-center gap-3 mt-2">
-                    <span className="text-xs text-white/50">{e.period}</span>
-                    <span className="text-xs font-mono font-bold text-green-400">{e.gpa}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ── Skills ── */}
-        <section>
-          <div className="flex items-center gap-3 mb-6">
-            <h2 className="text-xl font-display font-semibold text-white">Technical Skills</h2>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {[
-              { group: 'Programming',  items: ['Python', 'R', 'JavaScript', 'SQL'] },
-              { group: 'Quantitative Methods', items: ['HDFE Regression', 'Survival Analysis', 'Time Series', 'Monte Carlo', 'Econometrics'] },
-              { group: 'Finance',    items: ['Fixed Income', 'Derivatives Pricing', 'LBO Modeling', 'DCF Valuation', 'M&A Analysis', 'Options Pricing', 'Credit Derivatives', 'Structured Products', 'Factor Models'] },
-            ].map((s, i) => (
-              <div key={i} className="glass rounded-2xl p-5 space-y-3">
-                <p className="text-xs font-semibold text-white/70 uppercase tracking-widest">{s.group}</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {s.items.map(it => (
-                    <span key={it} className="text-xs text-white/60 px-2 py-0.5 bg-white/5 rounded-full">{it}</span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ── Beyond the Equations ── */}
-        <section>
-          <div className="flex items-center gap-3 mb-6">
-            <h2 className="text-xl font-display font-semibold text-white">Beyond the Equations</h2>
-          </div>
-          <div className="grid grid-cols-3 gap-4">
-            {[
-              { emoji: '🎸', title: 'Classical Guitar', sub: 'Albéniz · Villa-Lobos' },
-              { emoji: '🧩', title: "Rubik's Cube",     sub: '23 second avg' },
-              { emoji: '🏂', title: 'Snowboarding',     sub: 'Regular — not goofy' },
-            ].map(item => (
-              <div key={item.title} className="glass rounded-2xl p-6 text-center space-y-2 hover:bg-white/5 transition-colors"
-                style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                <div className="text-4xl">{item.emoji}</div>
-                <p className="text-sm font-semibold text-white">{item.title}</p>
-                <p className="text-xs text-white/50">{item.sub}</p>
-              </div>
             ))}
           </div>
         </section>
