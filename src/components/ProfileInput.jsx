@@ -196,8 +196,10 @@ export default function ProfileInput({ onExit, hideBack = false }) {
   useEffect(() => {
     if (showCalc || !result) return;
     const t = setTimeout(() => {
-      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 250);
+      if (!resultsRef.current) return;
+      const top = resultsRef.current.getBoundingClientRect().top + window.scrollY - 16;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    }, 300);
     return () => clearTimeout(t);
   }, [showCalc, result]);
 

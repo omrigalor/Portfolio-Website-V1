@@ -139,18 +139,21 @@ export default function AutoDemo({ onExit, hideBack = false }) {
     return () => timersRef.current.forEach(clearTimeout);
   }, []);
 
-  // Scroll to bottom of profiles when B starts loading
+  // Scroll to show B loading at step 6
   useEffect(() => {
-    if (demoStep === 6) {
-      profilesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    }
+    if (demoStep !== 6 || !profilesEndRef.current) return;
+    const el = profilesEndRef.current;
+    const top = el.getBoundingClientRect().top + window.scrollY - window.innerHeight + 80;
+    if (top > window.scrollY) window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
   }, [demoStep]);
 
   // Scroll to results after overlay clears
   useEffect(() => {
     if (!showResults) return;
     const t = setTimeout(() => {
-      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (!resultsRef.current) return;
+      const top = resultsRef.current.getBoundingClientRect().top + window.scrollY - 16;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
     }, 500);
     return () => clearTimeout(t);
   }, [showResults]);
