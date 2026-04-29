@@ -106,7 +106,7 @@ function PatentCard({ item, onOpen }) {
 
 // ─── Main portfolio page ──────────────────────────────────────────────────────
 
-export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan, onOpenVC }) {
+export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan, onOpenVC, onOpenBDR }) {
   const [openPaper, setOpenPaper] = useState(null);
 
   if (openPaper) {
@@ -277,7 +277,7 @@ export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan, 
             <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400">AI-Powered</span>
           </div>
           <p className="text-xs text-white/50 mb-6">Autonomous agents combining statistical modeling and simulation to generate actionable investment intelligence.</p>
-          <div className="grid grid-cols-1 gap-5 max-w-lg mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl mx-auto">
             {/* VC Agent */}
             <div
               className="glass rounded-2xl p-6 flex flex-col gap-4 card-lift hover:bg-white/6 cursor-pointer transition-all"
@@ -304,6 +304,40 @@ export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan, 
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {['Monte Carlo','Random Forest','12 Factors','Portfolio Scatter'].map(t => (
+                  <span key={t} className="px-2 py-0.5 rounded-full text-xs text-white/70 border border-white/10">{t}</span>
+                ))}
+              </div>
+            </div>
+
+            {/* BDR OS */}
+            <div
+              className="glass rounded-2xl p-6 flex flex-col gap-4 card-lift hover:bg-white/6 cursor-pointer transition-all"
+              style={{ borderTop: '2px solid rgba(255,160,64,0.4)' }}
+              onClick={onOpenBDR}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/15 border border-green-500/30 text-green-400 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                      Live
+                    </span>
+                    <span className="text-xs px-2 py-0.5 rounded-full border" style={{ borderColor:'rgba(255,160,64,0.3)', color:'#FFA040', background:'rgba(255,160,64,0.08)' }}>
+                      Anthropic Interview
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-semibold text-white/90 leading-snug">BDR Operating System</h3>
+                </div>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: 'rgba(255,160,64,0.12)', border: '1px solid rgba(255,160,64,0.3)' }}>
+                  <span className="text-sm" style={{ color: '#FFA040' }}>→</span>
+                </div>
+              </div>
+              <p className="text-xs text-white/65 leading-relaxed">
+                Full-stack EMEA pipeline OS built for the Anthropic BDR role. AI-powered lead scoring across 10 BANT factors, AE handoff brief generation, outbound campaign tracker, and discovery call playbook.
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {['Lead Scoring','AI Handoffs','Outbound Tracker','BANT Playbook','Funnel Analytics'].map(t => (
                   <span key={t} className="px-2 py-0.5 rounded-full text-xs text-white/70 border border-white/10">{t}</span>
                 ))}
               </div>
