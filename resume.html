@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Omri Galor — CV</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Garamond', 'Georgia', serif;
+      font-size: 10.5pt;
+      color: #111;
+      background: #fff;
+      padding: 0;
+    }
+
+    .print-btn {
+      position: fixed;
+      top: 16px;
+      right: 20px;
+      background: #111;
+      color: #fff;
+      border: none;
+      padding: 8px 18px;
+      font-size: 12px;
+      font-family: sans-serif;
+      border-radius: 6px;
+      cursor: pointer;
+      z-index: 999;
+    }
+    .print-btn:hover { background: #333; }
+
+    .page {
+      max-width: 750px;
+      margin: 0 auto;
+      padding: 52px 52px 52px 52px;
+    }
+
+    /* Header */
+    .header { text-align: center; margin-bottom: 18px; }
+    .header h1 {
+      font-size: 18pt;
+      font-weight: bold;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .header .contact {
+      font-size: 9.5pt;
+      color: #333;
+    }
+
+    /* Section */
+    .section { margin-bottom: 14px; }
+    .section-title {
+      font-size: 9pt;
+      font-weight: bold;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      border-bottom: 1px solid #111;
+      padding-bottom: 2px;
+      margin-bottom: 10px;
+    }
+
+    /* Entry */
+    .entry { margin-bottom: 10px; }
+    .entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 1px;
+    }
+    .entry-org {
+      font-weight: bold;
+      font-size: 10.5pt;
+    }
+    .entry-location {
+      font-size: 9.5pt;
+      color: #333;
+      text-align: right;
+    }
+    .entry-sub {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4px;
+    }
+    .entry-role {
+      font-style: italic;
+      font-size: 10pt;
+    }
+    .entry-date {
+      font-size: 9.5pt;
+      color: #333;
+      text-align: right;
+    }
+    .entry ul {
+      padding-left: 16px;
+    }
+    .entry ul li {
+      font-size: 10pt;
+      line-height: 1.45;
+      margin-bottom: 2px;
+    }
+
+    /* Skills row */
+    .skills-row {
+      font-size: 10pt;
+      line-height: 1.55;
+    }
+    .skills-row strong { font-weight: bold; }
+
+    /* IP list */
+    .ip-list { padding-left: 16px; }
+    .ip-list li { font-size: 10pt; line-height: 1.5; margin-bottom: 2px; }
+
+    @media print {
+      .print-btn { display: none; }
+      body { padding: 0; }
+      .page { padding: 28px 36px; max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<button class="print-btn" onclick="window.print()">Save as PDF</button>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>Omri Galor</h1>
+    <div class="contact">
+      8 Spruce St, Apt 36T, New York, NY 10038 &nbsp;·&nbsp; (401) 935-2378 &nbsp;·&nbsp; omri_galor@alumni.brown.edu
+    </div>
+  </div>
+
+  <!-- Education -->
+  <div class="section">
+    <div class="section-title">Education</div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <span class="entry-org">Brown University</span>
+        <span class="entry-location">Rhode Island, US</span>
+      </div>
+      <div class="entry-sub">
+        <span class="entry-role">BA in Economics &nbsp;(GPA: 4.0 / 4.0)</span>
+        <span class="entry-date">September 2015 – May 2019</span>
+      </div>
+    </div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <span class="entry-org">Reichman University (IDC)</span>
+        <span class="entry-location">Tel Aviv, Israel</span>
+      </div>
+      <div class="entry-sub">
+        <span class="entry-role">MBA in AI &amp; Big Data, First Year</span>
+        <span class="entry-date">October 2023 – April 2024</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Experience -->
+  <div class="section">
+    <div class="section-title">Professional Experience</div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <span class="entry-org">Reprium</span>
+        <span class="entry-location">New York City, US</span>
+      </div>
+      <div class="entry-sub">
+        <span class="entry-role">Co-Founder and CEO</span>
+        <span class="entry-date">April 2024 – December 2025</span>
+      </div>
+      <ul>
+        <li>Developed &amp; commercialized a predictive analytics platform that forecasts relationship longevity &amp; family outcomes</li>
+        <li>Led outreach to large consumer tech companies, converting cold outreach into executive-level meetings and NDAs</li>
+        <li>Secured Bumble's board-level acquisition review after direct engagement with senior leadership</li>
+        <li>Designed core model IP, isolating the causal impact of cultural, behavioral and demographic factors</li>
+      </ul>
+    </div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <span class="entry-org">Deutsche Bank</span>
+        <span class="entry-location">New York City, US</span>
+      </div>
+      <div class="entry-sub">
+        <span class="entry-role">Quantitative Analyst</span>
+        <span class="entry-date">October 2019 – May 2023</span>
+      </div>
+      <ul>
+        <li>Developed pricing, risk, and valuation models across derivatives and credit portfolios, using Python, SQL, and R</li>
+        <li>Identified pricing discrepancies using stochastic volatility and simulation-based modeling</li>
+        <li>Collaborated with traders and risk managers to refine models and enhance risk-adjusted returns</li>
+        <li>Selected as sole analyst firmwide for DB's entrepreneurship program</li>
+      </ul>
+    </div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <span class="entry-org">CICC (Morgan Stanley JV)</span>
+        <span class="entry-location">Hong Kong · Tel Aviv</span>
+      </div>
+      <div class="entry-sub">
+        <span class="entry-role">Venture Capital Analyst</span>
+        <span class="entry-date">September 2018 – October 2019</span>
+      </div>
+      <ul>
+        <li>Spearheaded Israeli venture coverage, sourcing and modeling high-growth med-tech and software companies</li>
+        <li>Built valuation frameworks (DCF, comps, &amp; advanced methods) to evaluate investment opportunities</li>
+        <li>Produced IC materials including competitive maps, cohort benchmarks, and TAM/GTM assessments</li>
+        <li>Conducted roadshows in Asia, presenting to 20+ institutional investors and securing cross-border investments</li>
+      </ul>
+    </div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <span class="entry-org">Office of the Prime Minister – Council of Economic Advisors</span>
+        <span class="entry-location">Jerusalem, Israel</span>
+      </div>
+      <div class="entry-sub">
+        <span class="entry-role">Research Assistant</span>
+        <span class="entry-date">June 2017 – August 2017</span>
+      </div>
+      <ul>
+        <li>Assisted the PM's Chief Economic Advisor on modeling &amp; sourcing tech companies for the Israel-India trade initiatives</li>
+      </ul>
+    </div>
+
+    <div class="entry">
+      <div class="entry-header">
+        <span class="entry-org">World Bank</span>
+        <span class="entry-location">Jerusalem, Israel</span>
+      </div>
+      <div class="entry-sub">
+        <span class="entry-role">Research Assistant</span>
+        <span class="entry-date">July 2016 – August 2016</span>
+      </div>
+      <ul>
+        <li>Supported economic analysis used in allocation and capital deployment in conflict-affected regions</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Independent Coursework -->
+  <div class="section">
+    <div class="section-title">Independent Coursework</div>
+    <div class="skills-row">
+      Data Analytics (Google) &nbsp;·&nbsp; Machine Learning (Stanford) &nbsp;·&nbsp; Statistics &amp; R (Harvard) &nbsp;·&nbsp; Python &amp; SQL for Finance (Codecademy)
+    </div>
+  </div>
+
+  <!-- Skills -->
+  <div class="section">
+    <div class="section-title">Skills, Network, and Interests</div>
+    <div class="skills-row">
+      <p><strong>Computer Skills:</strong> Python, SQL, R, Excel/VBA, RStudio</p>
+      <p><strong>Strategic Network:</strong> Direct access to sector leaders in biotech, medtech, and cybersecurity across Israel, China, and the U.S.</p>
+      <p><strong>Languages:</strong> English (Native), Hebrew (Native), Spanish (Intermediate)</p>
+      <p><strong>Interests:</strong> Snowboarding, Rock Climbing, Improv, Classical Guitar, Rubik's Cubes (25 sec solve)</p>
+    </div>
+  </div>
+
+  <!-- IP -->
+  <div class="section">
+    <div class="section-title">Intellectual Property</div>
+    <ul class="ip-list">
+      <li>Predictive Algorithm for Relationship Longevity &amp; Family Outcomes (Patent Pending)</li>
+      <li>Intra-Ancestral Divergence Algorithm for Predicting Employee Attrition (Patent Pending)</li>
+      <li>Intra-Ancestral Divergence Algorithm for Predicting Loan Default Risk (Patent Pending)</li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>
