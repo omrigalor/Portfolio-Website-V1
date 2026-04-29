@@ -82,77 +82,88 @@ const Tip = ({ active, payload, label }) => {
 
 function Results({ result }) {
   const { psi, pDefault, deltaVsAvg, creditScore, riskTier, riskColor, optPsi } = result;
-  const couplePoint = CURVE_DATA.find(d => Math.abs(d.psi - psi) < 0.015) ?? { psi, default: pDefault * 100 };
-  const avgPct = (AVERAGE_DEFAULT * 100).toFixed(1);
   const deltaPct = (Math.abs(deltaVsAvg) * 100).toFixed(1);
   const deltaColor = deltaVsAvg <= 0 ? '#22c55e' : '#ef4444';
-  const deltaLabel = deltaVsAvg <= 0 ? `${deltaPct}% below average` : `${deltaPct}% above average`;
+  const deltaSign  = deltaVsAvg <= 0 ? '−' : '+';
+
+  // Position on 0–0.5 scale for the gauge bar
+  const psiPct    = Math.min(100, (psi / 0.50) * 100);
+  const optPct    = Math.min(100, (optPsi / 0.50) * 100);
+  const avgPsiPct = Math.min(100, (0.15 / 0.50) * 100);
 
   return (
     <div className="space-y-6 mt-8">
       {/* Top KPIs */}
       <div className="grid grid-cols-3 gap-4">
         <div className="glass-strong rounded-2xl p-5 text-center border" style={{ borderColor: ACCENT + '40' }}>
-          <p className="text-4xl font-bold font-mono" style={{ color: riskColor }}>{(pDefault * 100).toFixed(1)}%</p>
-          <p className="text-xs text-white/70 mt-1">Default Probability</p>
+          <p className="text-4xl font-bold font-mono text-white">{creditScore}</p>
+          <p className="text-xs text-white/70 mt-1">Ancestry Credit Score</p>
           <p className="text-xs mt-1 px-2 py-0.5 rounded-full inline-block font-medium"
             style={{ background: riskColor + '20', color: riskColor, border: `1px solid ${riskColor}40` }}>
             {riskTier}
           </p>
         </div>
         <div className="glass rounded-2xl p-5 text-center">
-          <p className="text-4xl font-bold font-mono text-white">{avgPct}%</p>
-          <p className="text-xs text-white/70 mt-1">Population Average</p>
-          <p className="text-xs text-white/45">at mean parental ψ ≈ 0.15</p>
+          <p className="text-4xl font-bold font-mono" style={{ color: deltaColor }}>
+            {deltaSign}{deltaPct}%
+          </p>
+          <p className="text-xs text-white/70 mt-1">vs. Population Average</p>
+          <p className="text-xs mt-0.5 text-white/45">ancestry-driven default risk channel only</p>
         </div>
         <div className="glass rounded-2xl p-5 text-center">
-          <p className="text-4xl font-bold font-mono" style={{ color: deltaColor }}>
-            {deltaVsAvg <= 0 ? '−' : '+'}{deltaPct}%
-          </p>
-          <p className="text-xs text-white/70 mt-1">vs. Average</p>
-          <p className="text-xs mt-0.5" style={{ color: deltaColor }}>{deltaLabel}</p>
+          <p className="text-4xl font-bold font-mono" style={{ color: ACCENT }}>{(pDefault * 100).toFixed(1)}%</p>
+          <p className="text-xs text-white/70 mt-1">Model-Implied Default Rate</p>
+          <p className="text-xs text-white/45">ancestry channel · other factors excluded</p>
         </div>
       </div>
 
-      {/* Score breakdown */}
+      {/* Position gauge */}
       <div className="glass rounded-2xl p-6 space-y-4">
-        <h3 className="text-sm font-semibold text-white/70 uppercase tracking-widest">Default Risk Profile</h3>
-        <div>
-          <div className="flex justify-between text-xs mb-1">
-            <span className="text-white/60">Credit Safety Score (lower default = higher score)</span>
-            <span className="font-mono text-white">{creditScore}/100</span>
+        <h3 className="text-sm font-semibold text-white/70 uppercase tracking-widest">Ancestry Diversity — Default Risk Position</h3>
+        <p className="text-xs text-white/45 leading-relaxed">
+          This model isolates the causal effect of parental ancestry divergence on default risk. Income, loan size, age, and other individual factors are excluded — they are either downstream of ancestry or introduce unobserved confounders.
+        </p>
+
+        {/* Gauge bar */}
+        <div className="space-y-2 pt-1">
+          <div className="flex justify-between text-xs text-white/40 mb-1">
+            <span>Homogeneous parents</span>
+            <span>Highly diverse parents</span>
+          </div>
+          <div className="relative h-3 rounded-full bg-white/8 overflow-visible">
+            {/* gradient fill */}
+            <div className="absolute inset-0 rounded-full" style={{ background: `linear-gradient(90deg, rgba(212,175,55,0.4) 0%, rgba(34,197,94,0.5) ${optPct}%, rgba(239,68,68,0.4) 100%)` }} />
+            {/* optimal marker */}
+            <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 flex flex-col items-center" style={{ left: `${optPct}%` }}>
+              <div className="w-0.5 h-5 rounded-full bg-amber-400/80" />
+            </div>
+            {/* average marker */}
+            <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2" style={{ left: `${avgPsiPct}%` }}>
+              <div className="w-0.5 h-5 rounded-full bg-white/30" />
+            </div>
+            {/* user marker */}
+            <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2" style={{ left: `${psiPct}%` }}>
+              <div className="w-4 h-4 rounded-full border-2 border-white" style={{ background: riskColor }} />
+            </div>
+          </div>
+          <div className="flex justify-between text-xs pt-1">
+            <span className="text-amber-400/70">▲ Optimal (lowest risk)</span>
+            <span className="text-white/30">▲ Avg</span>
+            <span style={{ color: riskColor }}>● You</span>
+          </div>
+        </div>
+
+        {/* Credit safety bar */}
+        <div className="pt-2">
+          <div className="flex justify-between text-xs mb-1.5">
+            <span className="text-white/55">Ancestry Credit Safety Score</span>
+            <span className="font-mono text-white">{creditScore} / 100</span>
           </div>
           <div className="h-2 bg-white/8 rounded-full overflow-hidden">
-            <div className="h-full rounded-full" style={{ width: `${creditScore}%`, background: '#22c55e' }} />
+            <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${creditScore}%`, background: '#22c55e' }} />
           </div>
-          <p className="text-xs text-white/38 mt-0.5">ACS: P(low-income) = 0.254 − 0.434·ψ + 1.740·ψ²  · ψ*=0.125 · n=843,228</p>
+          <p className="text-xs text-white/32 mt-1">ACS 5yr micro-data · n=843,228 · inverted-U regression on ancestry divergence · optimal at 0.125 on 0–1 scale</p>
         </div>
-      </div>
-
-      {/* Default probability curve */}
-      <div className="glass rounded-2xl p-6">
-        <h3 className="text-sm font-semibold text-white/70 uppercase tracking-widest mb-1">Default Probability vs Parental Cultural Distance</h3>
-        <p className="text-xs text-white/50 mb-4">P(default) = 0.254 − 0.434·ψ + 1.740·ψ² · ACS n=843,228 · ψ*=0.125</p>
-        <ResponsiveContainer width="100%" height={220}>
-          <AreaChart data={CURVE_DATA} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-            <defs>
-              <linearGradient id="loanGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#C41E3A" stopOpacity={0.25} />
-                <stop offset="95%" stopColor="#C41E3A" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-            <XAxis dataKey="psi" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} tickFormatter={v => v.toFixed(2)} />
-            <YAxis domain={[15, 45]} tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} tickFormatter={v => v + '%'} />
-            <Tooltip content={<Tip />} />
-            <ReferenceLine x={parseFloat(optPsi.toFixed(2))} stroke={ACCENT} strokeDasharray="4 3"
-              label={{ value: `ψ*=${optPsi}`, position: 'top', fill: ACCENT, fontSize: 10 }} />
-            <ReferenceLine y={parseFloat((AVERAGE_DEFAULT * 100).toFixed(1))} stroke="rgba(255,255,255,0.3)" strokeDasharray="3 3"
-              label={{ value: 'Avg', position: 'right', fill: 'rgba(255,255,255,0.4)', fontSize: 9 }} />
-            <Area type="monotone" dataKey="default" name="Default %" stroke="#C41E3A" strokeWidth={2.5} fill="url(#loanGrad)" dot={false} />
-            <ReferenceDot x={parseFloat(psi.toFixed(2))} y={parseFloat((pDefault * 100).toFixed(1))} r={6} fill="#C41E3A" stroke="white" strokeWidth={2} />
-          </AreaChart>
-        </ResponsiveContainer>
       </div>
 
       {/* Methodology */}
@@ -220,12 +231,12 @@ export default function LoanApp({ onBack }) {
           </p>
           <div className="flex items-center justify-center gap-8 pt-2">
             {[
-              { v: 'ψ*=0.125', l: 'Optimal parental distance' },
-              { v: '−45%', l: 'Default at ψ* vs worst' },
-              { v: 'n=843k', l: 'ACS 2010 sample' },
+              { v: '22.7%',  l: 'Default rate at optimal ancestry mix' },
+              { v: '−45%',   l: 'Default reduction vs. highest risk' },
+              { v: '843k',   l: 'Research participants' },
             ].map(s => (
               <div key={s.l} className="text-center">
-                <p className="text-lg font-bold font-mono" style={{ color: ACCENT }}>{s.v}</p>
+                <p className="text-lg font-bold font-mono text-white">{s.v}</p>
                 <p className="text-xs text-white/50">{s.l}</p>
               </div>
             ))}
@@ -253,8 +264,10 @@ export default function LoanApp({ onBack }) {
                 <p className="text-2xl font-bold font-mono text-white">{live.psi.toFixed(3)} <span className="text-sm text-white/45">ψ</span></p>
               </div>
               <div className="text-center">
-                <p className="text-xs text-white/58">Default Probability</p>
-                <p className="text-xl font-bold font-mono" style={{ color: live.riskColor }}>{(live.pDefault * 100).toFixed(1)}%</p>
+                <p className="text-xs text-white/58">vs. Population Avg.</p>
+                <p className="text-xl font-bold font-mono" style={{ color: live.deltaVsAvg <= 0 ? '#22c55e' : '#ef4444' }}>
+                  {live.deltaVsAvg <= 0 ? '−' : '+'}{(Math.abs(live.deltaVsAvg) * 100).toFixed(1)}%
+                </p>
               </div>
               <button onClick={handleCompute} disabled={!isValid}
                 className="px-6 py-2.5 rounded-full text-sm font-semibold text-white transition-all hover:scale-105"

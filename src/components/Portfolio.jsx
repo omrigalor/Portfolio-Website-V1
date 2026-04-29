@@ -113,17 +113,16 @@ export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan, 
     return (
       <div className="min-h-screen bg-premium flex flex-col">
         <div className="absolute inset-0 bg-glow-red pointer-events-none" />
-        <div className="flex items-center gap-3 relative px-4 py-3 border-b border-white/8"
+        <div className="relative flex items-center px-4 py-3 border-b border-white/8"
           style={{ background: 'rgba(10,10,15,0.95)', backdropFilter: 'blur(20px)' }}>
           <button
             onClick={() => setOpenPaper(null)}
-            className="text-xs text-white/58 hover:text-white/80 border border-white/10 hover:border-white/20 px-3 py-1.5 rounded-full transition-all"
+            className="text-xs text-white/58 hover:text-white/80 border border-white/10 hover:border-white/20 px-3 py-1.5 rounded-full transition-all shrink-0"
           >
             ← Back
           </button>
-          <span className="text-xs text-white/45">|</span>
-          <span className="text-xs text-white/60 font-medium">{openPaper.title}</span>
-          <span className="ml-auto text-xs px-2 py-0.5 rounded-full border font-mono"
+          <span className="absolute left-1/2 -translate-x-1/2 text-xs text-white/70 font-medium text-center pointer-events-none">{openPaper.title}</span>
+          <span className="ml-auto text-xs px-2 py-0.5 rounded-full border font-mono shrink-0"
             style={{ borderColor: openPaper.color + '50', color: openPaper.color, background: openPaper.color + '15' }}>
             {openPaper.type}
           </span>
