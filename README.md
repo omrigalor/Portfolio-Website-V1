@@ -1,38 +1,53 @@
-# Reprium — Predictive Compatibility Engine
+# Omri Galor — Portfolio & Research Platform
 
-**[Live Demo →](https://omrigalor.github.io/Portfolio-Website-V1/)**
+**[Live → omrigalor.com](https://omrigalor.com)**
 
-A science-based web application built on three patented predictive models that quantify human compatibility using pre-historic migratory distance (ψ) as a proxy for cultural background divergence. Trained on 839,000+ real couples from CPS micro-data (1994–2023).
+A full-stack portfolio and interactive research platform showcasing three patented predictive models and an AI-powered venture capital analysis agent. Statistical engine built from scratch in JavaScript; trained on 839,000+ real-world data points.
 
 ---
 
-## The Three Patented Models
+## Patented Models
 
 ### 1. Relationship Longevity Predictor
-`US Patent 11,891,445 B1`
+`US Patent 11,847,293 B2`
 
-Predicts long-term relationship stability for a couple based on parental cultural backgrounds, age, and education. Uses a quadratic regression on ψ (cultural distance) with high-dimensional fixed effects — identifying an optimal intermediate cultural distance that minimises separation risk. Overall score = P(pairing forms) × relationship longevity score.
+Predicts long-term relationship stability from parental cultural backgrounds, age, and education. Uses quadratic regression on ψ (pre-historic migratory distance) with high-dimensional fixed effects — identifying an optimal intermediate cultural distance that minimises separation risk.
 
 ### 2. Employee Attrition Predictor
 `US Patent 11,923,451 B1`
 
-Predicts employee tenure from parental cultural background divergence. Too similar or too different → higher job-hopping. The same inverted-U relationship observed in relationships holds in organisational settings. Trained on CPS labour data with HDFE regression.
+Predicts employee tenure from parental cultural background divergence. The same inverted-U relationship observed in relationships holds in organisational settings. Trained on CPS labour micro-data with HDFE regression.
 
 ### 3. Loan Default Risk Predictor
 `US Patent 12,041,876 B2`
 
-Predicts loan default probability from the borrower's parental cultural background. Isolates the pure causal channel of cultural distance on financial discipline, removing endogenous covariates (income, age) that are downstream of ψ. Validated against ACS 5-year micro-data (n=843,228).
+Predicts loan default probability from the borrower's parental cultural background divergence. Isolates the causal channel of cultural distance on financial discipline, removing endogenous covariates downstream of ψ. Validated against ACS 5-year micro-data (n=843,228).
 
 ---
 
-## Features
+## Financial Agents
 
-- **Portfolio** — experience, education, research papers, and patented models overview
-- **Compatibility App** — enter two people's backgrounds and get a full score breakdown: relationship longevity, child well-being, spark vs. cohesion, and an overall market-adjusted score
-- **Data Insights** — standalone visualisations of age compatibility, religious compatibility, cultural distance effects, and intermarriage patterns across 839k couples
-- **Attrition App** — HR tool for predicting employee tenure from parental background
-- **Loan Default App** — fintech tool for default risk scoring relative to the population average
-- **Market Validation** — addressable market sizing and revenue opportunity analysis
+### Venture Capital Agent
+AI-powered portfolio ranking agent. Enter any company names — the agent calls Claude (Anthropic) to research each one and estimate 12 investment factors, then runs:
+- **Monte Carlo simulation** — 2,000 iterations with Gaussian noise (σ=10) per factor
+- **Random Forest** — 10 trees with bootstrapped factor subsets
+- **4-quadrant scatter plot** — Market Opportunity vs. Execution Quality
+- **Ranked output** — composite MC + RF score with P10–P90 confidence intervals
+
+---
+
+## App Features
+
+| Feature | Description |
+|---|---|
+| **Portfolio** | Patents, research papers, résumé |
+| **Compatibility App** | Relationship longevity + child well-being score for any two backgrounds |
+| **Auto Demo** | Animated walkthrough of the compatibility engine |
+| **Data Insights** | Visualisations of age, religion, and cultural distance effects across 839k couples |
+| **Attrition App** | HR tool — predicts employee tenure from parental background |
+| **Loan Default App** | FinTech tool — default risk score vs. population average |
+| **Market Validation** | TAM analysis and revenue opportunity sizing |
+| **VC Agent** | AI-powered portfolio research, Monte Carlo + Random Forest ranking |
 
 ---
 
@@ -43,55 +58,33 @@ Predicts loan default probability from the borrower's parental cultural backgrou
 | Framework | React 19 + Vite 8 |
 | Styling | Tailwind CSS v4 |
 | Charts | Recharts |
-| Statistical engine | Custom JS (scoring.js, attrition.js, loan.js) |
+| Statistical engine | Custom JS — `scoring.js`, `attrition.js`, `loan.js` |
+| AI research | Anthropic Claude API (claude-haiku) |
 | Data sources | CPS micro-data · ACS 5yr · NLSY79 · Pew Research 2015 |
-| Deployment | GitHub Pages |
+| Deployment | GitHub Pages · Custom domain |
 
 ---
 
 ## Running Locally
 
 ```bash
-# Install dependencies
 npm install
-
-# Start dev server at http://localhost:5173
-npm run dev
+npm run dev       # http://localhost:5173
 ```
 
----
-
-## npm Scripts
-
-| Command | Description |
+| Script | Description |
 |---|---|
-| `npm run dev` | Start local development server |
-| `npm run build` | Production build to `dist/` |
-| `npm run preview` | Preview production build locally |
-| `npm run deploy` | Build and push to GitHub Pages |
-
----
-
-## Project Status
-
-| Component | Status |
-|---|---|
-| Relationship Longevity model | Live |
-| Child Well-Being model | Live |
-| Employee Attrition model | Live |
-| Loan Default model | Live |
-| Portfolio page | Live |
-| Data Insights page | Live |
-| Live deployment | Coming soon |
-| Custom domain | Planned |
+| `npm run dev` | Local dev server |
+| `npm run build` | Production build → `dist/` |
+| `npm run deploy` | Build + push to GitHub Pages |
 
 ---
 
 ## Research Foundation
 
-The models are grounded in peer-reviewed economics research on pre-historic migratory distance as a determinant of long-run cultural, cognitive, and economic outcomes (Pemberton et al. 2013; Spolaore & Wacziarg 2009). ψ captures divergence in values, communication styles, and institutional norms accumulated over millennia — not modern political borders.
+Models are grounded in peer-reviewed economics research on pre-historic migratory distance as a determinant of long-run cultural, cognitive, and economic outcomes (Pemberton et al. 2013; Spolaore & Wacziarg 2009). ψ captures divergence in values, communication styles, and institutional norms accumulated over millennia — not modern political borders.
 
-Two working papers are available in [`/public/papers/`](public/papers/).
+Working papers available in [`/public/papers/`](public/papers/).
 
 ---
 
