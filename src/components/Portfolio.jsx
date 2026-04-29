@@ -106,7 +106,7 @@ function PatentCard({ item, onOpen }) {
 
 // ─── Main portfolio page ──────────────────────────────────────────────────────
 
-export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan }) {
+export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan, onOpenVC }) {
   const [openPaper, setOpenPaper] = useState(null);
 
   if (openPaper) {
@@ -268,6 +268,48 @@ export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan }
                 </div>
               </button>
             ))}
+          </div>
+        </section>
+
+        {/* ── Financial Agents ── */}
+        <section>
+          <div className="flex items-center gap-3 mb-2">
+            <h2 className="text-xl font-display font-semibold text-white">Financial Agents</h2>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400">AI-Powered</span>
+          </div>
+          <p className="text-xs text-white/50 mb-6">Autonomous agents combining statistical modeling and simulation to generate actionable investment intelligence.</p>
+          <div className="grid grid-cols-1 gap-5 max-w-lg mx-auto">
+            {/* VC Agent */}
+            <div
+              className="glass rounded-2xl p-6 flex flex-col gap-4 card-lift hover:bg-white/6 cursor-pointer transition-all"
+              style={{ borderTop: '2px solid rgba(59,130,246,0.4)' }}
+              onClick={onOpenVC}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/15 border border-green-500/30 text-green-400 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                      Live
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-semibold text-white/90 leading-snug">Venture Capital Agent</h3>
+                </div>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: 'rgba(59,130,246,0.12)', border: '1px solid rgba(59,130,246,0.3)' }}>
+                  <span className="text-sm" style={{ color: '#60a5fa' }}>→</span>
+                </div>
+              </div>
+              <p className="text-xs text-white/65 leading-relaxed">
+                AI agent that researches a portfolio of companies and ranks them using Monte Carlo simulation (2,000 iterations) and a 10-tree Random Forest across 12 weighted investment factors.
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {['Monte Carlo','Random Forest','12 Factors','Portfolio Scatter'].map(t => (
+                  <span key={t} className="px-2 py-0.5 rounded-full text-xs text-white/70 border border-white/10">{t}</span>
+                ))}
+              </div>
+            </div>
+
           </div>
         </section>
 

@@ -6,6 +6,7 @@ import InsightsPage from './components/InsightsPage';
 import MarketValidation from './components/MarketValidation';
 import AttritionApp from './components/AttritionApp';
 import LoanApp from './components/LoanApp';
+import VCModel from './components/VCModel';
 
 // ─── Tab bar ──────────────────────────────────────────────────────────────────
 
@@ -177,11 +178,14 @@ export default function App() {
 
   if (mode === 'loan') return <LoanApp onBack={() => setMode('portfolio')} />;
 
+  if (mode === 'vc') return <VCModel onBack={() => setMode('portfolio')} />;
+
   return (
     <Portfolio
       onOpenReprium={()   => setMode('reprium')}
       onOpenAttrition={() => setMode('attrition')}
       onOpenLoan={()      => setMode('loan')}
+      onOpenVC={()        => setMode('vc')}
     />
   );
 }
