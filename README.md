@@ -1,12 +1,8 @@
 # Reprium — Predictive Compatibility Engine
 
+**[Live Demo →](https://omrigalor.github.io/Portfolio-Website-V1/)**
+
 A science-based web application built on three patented predictive models that quantify human compatibility using pre-historic migratory distance (ψ) as a proxy for cultural background divergence. Trained on 839,000+ real couples from CPS micro-data (1994–2023).
-
----
-
-## Live Demo
-
-> Deployment coming soon.
 
 ---
 
