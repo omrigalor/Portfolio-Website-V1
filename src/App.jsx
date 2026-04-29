@@ -61,6 +61,11 @@ function RepriumHome({ onDemo, onMatch, onBack }) {
     <div className="min-h-screen bg-premium flex flex-col items-center justify-center px-6 pb-24">
       <div className="absolute inset-0 bg-glow-red pointer-events-none" />
       <div className="absolute inset-0 bg-glow-gold pointer-events-none" />
+      <div className="absolute top-4 left-4 z-10">
+        <button onClick={onBack} className="text-xs text-white/55 hover:text-white/80 border border-white/10 hover:border-white/20 px-3 py-1.5 rounded-full transition-all">
+          ← Portfolio
+        </button>
+      </div>
 
       <div className="relative max-w-xl w-full text-center space-y-8">
         <div>
@@ -152,6 +157,12 @@ function RepriumApp({ onBack }) {
     <div className="min-h-screen bg-premium pb-20">
       <div className="absolute inset-0 bg-glow-red pointer-events-none" />
       <div className="absolute inset-0 bg-glow-gold pointer-events-none" />
+      <div className="sticky top-0 z-50 flex items-center px-4 py-2.5 border-b border-white/8"
+        style={{ background: 'rgba(10,10,15,0.96)', backdropFilter: 'blur(20px)' }}>
+        <button onClick={onBack} className="text-xs text-white/55 hover:text-white/80 border border-white/10 hover:border-white/20 px-3 py-1.5 rounded-full transition-all">
+          ← Portfolio
+        </button>
+      </div>
       <div className="relative">
         {tab === 'demo'     && <AutoDemo     onExit={() => setTab('home')} hideBack />}
         {tab === 'match'    && <ProfileInput onExit={() => setTab('home')} hideBack />}

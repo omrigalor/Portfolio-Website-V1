@@ -146,10 +146,14 @@ function buildDemoEvents() { return DEMO.flatMap(c => LOG_FNS.map(fn => fn(c)));
 
 // ─── Anthropic API research ───────────────────────────────────────────────────
 
-async function researchCompany(name, apiKey) {
-  const prompt = `You are a venture capital analyst. Based on publicly available information about "${name}", score it on these 12 VC investment factors (0–100).
+async function researchCompany(name, apiKey, dataRoom = null) {
+  const drSection = dataRoom?.trim()
+    ? `\n\nProprietary data room data has been provided for ${name}:\n${dataRoom.trim()}\n\nIncorporate this data into your factor estimates where relevant. If the data room provides meaningful financials or metrics, upgrade dataConfidence to "high".`
+    : '';
 
-Also rate your data confidence: "high" = well-known company with substantial public data, "medium" = some data available, "low" = limited public data (early-stage, stealth, or niche).
+  const prompt = `You are a venture capital analyst. Based on publicly available information about "${name}", score it on these 12 VC investment factors (0–100).${drSection}
+
+Also rate your data confidence: "high" = well-known company or substantive data room provided, "medium" = some data available, "low" = limited public data (early-stage, stealth, or niche).
 
 Return ONLY valid JSON, no prose:
 {"sector":"Industry","dataConfidence":"medium","marketSize":0,"moat":0,"team":0,"pmf":0,"growth":0,"unitEcon":0,"network":0,"tech":0,"timing":0,"burn":0,"competition":0,"regulatory":0}`;
@@ -281,6 +285,8 @@ export default function VCModel({ onBack }) {
   const [refinements, setRefinements]     = useState({});
   const [expandedRefine, setExpandedRefine] = useState(null);
   const [howOpen, setHowOpen]             = useState(false);
+  const [dataRooms, setDataRooms]         = useState({});
+  const [expandedDataRoom, setExpandedDataRoom] = useState(null);
 
   const timerRef   = useRef(null);
   const termRef    = useRef(null);
@@ -361,9 +367,10 @@ export default function VCModel({ onBack }) {
     for (let i = 0; i < inputCompanies.length; i++) {
       if (abortRef.current) return;
       const name = inputCompanies[i];
-      addLine(`> [${i + 1}/${inputCompanies.length}] Researching ${name}...`);
+      const hasDR = !!dataRooms[name]?.trim();
+      addLine(`> [${i + 1}/${inputCompanies.length}] Researching ${name}${hasDR ? ' · data room provided' : ''}...`);
       try {
-        const f = await researchCompany(name, apiKey);
+        const f = await researchCompany(name, apiKey, dataRooms[name] || null);
         addLine(`  marketSize=${f.marketSize}  moat=${f.moat}  team=${f.team}  pmf=${f.pmf}  growth=${f.growth}`);
         addLine(`  unitEcon=${f.unitEcon}  network=${f.network}  tech=${f.tech}  timing=${f.timing}  burn=${f.burn}`);
         addLine(`✓ ${name} — ${f.sector} · data confidence: ${f.dataConfidence}`);
@@ -383,6 +390,7 @@ export default function VCModel({ onBack }) {
     setPhase('idle'); setRunMode(null); setIdleMode('choice');
     setAnalyzeStep(0); setTermLines([]); setAnalyzeError(null);
     setMcProgress(0); setRfDone(0); setResults(null); setRefinements({}); setExpandedRefine(null);
+    setDataRooms({}); setExpandedDataRoom(null);
   }
 
   const topBar = (
@@ -441,23 +449,23 @@ export default function VCModel({ onBack }) {
           {/* Pipeline */}
           <div className="glass rounded-2xl p-5 space-y-4">
             <p className="text-xs font-semibold text-white/40 uppercase tracking-widest">Analysis Pipeline</p>
-            <div className="flex items-stretch gap-1.5 flex-wrap">
+            <div className="flex items-stretch gap-1 overflow-x-auto pb-1">
               {[
                 { icon: '⚡', label: '12 Factors', sub: 'per company', color: '#60a5fa' },
                 { icon: '⚖', label: 'Stage Weights', sub: 'Early / A / Growth', color: '#ff8fa3' },
                 { icon: '🔬', label: 'AI Research', sub: 'Claude Haiku', color: '#a78bfa', note: 'research mode' },
                 { icon: '∿', label: 'Monte Carlo', sub: '2,000 iter · σ=10', color: '#D4AF37' },
-                { icon: '🌲', label: 'Random Forest', sub: '10 trees · 7 factors each', color: '#22c55e' },
+                { icon: '🌲', label: 'Random Forest', sub: '10 trees', color: '#22c55e' },
                 { icon: '🏆', label: 'Final Score', sub: 'MC 60% + RF 40%', color: '#f97316' },
               ].map((s, i, arr) => (
-                <div key={s.label} className="flex items-center gap-1.5">
-                  <div className="rounded-xl px-3 py-2.5 text-center" style={{ minWidth: 96, background: s.color + '14', border: `1px solid ${s.color}30` }}>
-                    <p className="text-base mb-0.5">{s.icon}</p>
+                <div key={s.label} className="flex items-center gap-1 shrink-0">
+                  <div className="rounded-xl px-2.5 py-2 text-center" style={{ width: 86, background: s.color + '14', border: `1px solid ${s.color}30` }}>
+                    <p className="text-sm mb-0.5">{s.icon}</p>
                     <p className="text-xs font-semibold leading-tight" style={{ color: s.color }}>{s.label}</p>
                     <p className="text-xs text-white/28 leading-tight mt-0.5">{s.sub}</p>
                     {s.note && <p className="text-xs text-white/18 italic mt-0.5">{s.note}</p>}
                   </div>
-                  {i < arr.length - 1 && <span className="text-white/18 text-base shrink-0">→</span>}
+                  {i < arr.length - 1 && <span className="text-white/18 text-sm shrink-0">→</span>}
                 </div>
               ))}
             </div>
@@ -664,13 +672,43 @@ export default function VCModel({ onBack }) {
                 style={{ background:newName.trim()?'rgba(59,130,246,0.2)':'rgba(255,255,255,0.04)', border:`1px solid ${newName.trim()?'rgba(59,130,246,0.4)':'rgba(255,255,255,0.08)'}`, color:newName.trim()?'#60a5fa':'rgba(255,255,255,0.22)' }}>Add</button>
             </div>
             {inputCompanies.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-1">
-                {inputCompanies.map(n => (
-                  <div key={n} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border border-white/10 text-xs" style={{ background:'rgba(255,255,255,0.04)' }}>
-                    <span className="text-white/72">{n}</span>
-                    <button onClick={() => setInputCompanies(p => p.filter(x => x !== n))} className="text-white/28 hover:text-white/55 transition-colors leading-none">×</button>
-                  </div>
-                ))}
+              <div className="space-y-1.5 pt-1">
+                {inputCompanies.map(n => {
+                  const isOpen = expandedDataRoom === n;
+                  const hasDR  = !!dataRooms[n]?.trim();
+                  return (
+                    <div key={n}>
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 text-xs" style={{ background:'rgba(255,255,255,0.04)' }}>
+                        <span className="text-white/72 flex-1 font-medium">{n}</span>
+                        {hasDR && <span className="text-amber-400/65 text-xs">✓ data room</span>}
+                        <button
+                          onClick={() => setExpandedDataRoom(isOpen ? null : n)}
+                          className="px-2.5 py-0.5 rounded-lg border text-xs transition-all"
+                          style={{ borderColor: isOpen ? 'rgba(212,175,55,0.45)' : 'rgba(255,255,255,0.12)', color: isOpen ? '#D4AF37' : 'rgba(255,255,255,0.42)', background: isOpen ? 'rgba(212,175,55,0.10)' : 'transparent' }}>
+                          📁 {isOpen ? 'Close' : 'Data Room'}
+                        </button>
+                        <button onClick={() => setInputCompanies(p => p.filter(x => x !== n))} className="text-white/28 hover:text-white/60 transition-colors leading-none ml-1">×</button>
+                      </div>
+                      {isOpen && (
+                        <div className="mx-0.5 rounded-b-xl px-4 py-3 space-y-2"
+                          style={{ background:'rgba(212,175,55,0.04)', border:'1px solid rgba(212,175,55,0.18)', borderTop:'none' }}>
+                          <p className="text-xs font-semibold text-amber-400/70">Data Room — {n}</p>
+                          <p className="text-xs text-white/35 leading-relaxed">
+                            Paste key financial metrics from the data room. Claude will incorporate these into the factor scores and upgrade data confidence to High.
+                          </p>
+                          <p className="text-xs text-white/25 italic">e.g. ARR, growth rate, burn rate, gross margin, customer count, team size, key KPIs, runway, cap table highlights…</p>
+                          <textarea
+                            value={dataRooms[n] || ''}
+                            onChange={e => setDataRooms(prev => ({ ...prev, [n]: e.target.value }))}
+                            placeholder="ARR $12M · growing 180% YoY · gross margin 72% · burn $800k/mo · 45 FTEs · 320 enterprise customers · 18mo runway…"
+                            rows={4}
+                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white/70 placeholder-white/22 outline-none focus:border-amber-500/40 resize-none transition-colors"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
             {inputCompanies.length === 0 && <p className="text-xs text-white/22 italic">Add at least one company to continue.</p>}
