@@ -1,10 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRef, useEffect } from 'react';
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, ReferenceLine, ReferenceDot, Area, AreaChart,
-} from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, ReferenceDot, Area, AreaChart } from 'recharts';
 import { computeAttritionScore, generateAttritionCurve } from '../lib/attrition.js';
 import { COUNTRIES, EDUCATION_OPTIONS } from '../data/countries.js';
 
@@ -91,9 +88,7 @@ const Tip = ({ active, payload, label }) => {
 
 // ─── Results ─────────────────────────────────────────────────────────────────
 function Results({ result }) {
-  const { psi, retention_score, attrition_rate, wages_score, focus_score, ed_score, expected_tenure, optPsi } = result;
-
-  const couplePoint = CURVE_DATA.find(d => Math.abs(d.psi - psi) < 0.015) ?? { psi, retention: retention_score };
+  const { psi, retention_score, attrition_rate, wages_score, focus_score, optPsi } = result;
 
   return (
     <div className="space-y-6 mt-8">
@@ -106,13 +101,13 @@ function Results({ result }) {
         </div>
         <div className="glass rounded-2xl p-5 text-center">
           <p className="text-4xl font-bold font-mono" style={{ color: ACCENT }}>{(attrition_rate * 100).toFixed(1)}%</p>
-          <p className="text-xs text-white/70 mt-1">Annual Attrition Rate</p>
-          <p className="text-xs text-white/45">NLSY empirical estimate</p>
+          <p className="text-xs text-white/70 mt-1">Prob. of Leaving — 1 Year</p>
+          <p className="text-xs text-white/45">NLSY 1979 longitudinal data</p>
         </div>
         <div className="glass rounded-2xl p-5 text-center">
-          <p className="text-4xl font-bold font-mono text-white">{expected_tenure}yr</p>
-          <p className="text-xs text-white/70 mt-1">Likely Years at Company</p>
-          <p className="text-xs text-white/45">implied by attrition rate</p>
+          <p className="text-4xl font-bold font-mono text-white">{Math.round(wages_score)}</p>
+          <p className="text-xs text-white/70 mt-1">Earnings Potential</p>
+          <p className="text-xs text-white/45">out of 100 · peaks at optimal diversity</p>
         </div>
       </div>
 
@@ -120,9 +115,8 @@ function Results({ result }) {
       <div className="glass rounded-2xl p-6 space-y-4">
         <h3 className="text-sm font-semibold text-white/70 uppercase tracking-widest">Score Breakdown</h3>
         {[
-          { label: 'Earnings Potential', score: wages_score, note: 'β₁=0.79, β₂=−1.89 · ψ*=0.208', color: ACCENT },
-          { label: 'Cognitive Focus', score: focus_score, note: 'β=2.86 (linear, lower = more focused)', color: '#22c55e' },
-          { label: 'Educational Attainment', score: ed_score, note: 'β₁=2.21, β₂=−5.82 · ψ*=0.190', color: '#a78bfa' },
+          { label: 'Earnings Potential', score: wages_score, note: 'Inverted-U relationship — intermediate ancestry diversity peaks at 0.208 on 0–1 scale', color: ACCENT },
+          { label: 'Cognitive Focus',    score: focus_score, note: 'Linear — more homogeneous background correlates with higher sustained focus', color: '#22c55e' },
         ].map(d => (
           <div key={d.label}>
             <div className="flex justify-between text-xs mb-1">
@@ -135,30 +129,6 @@ function Results({ result }) {
             <p className="text-xs text-white/38 mt-0.5">{d.note}</p>
           </div>
         ))}
-      </div>
-
-      {/* Retention curve */}
-      <div className="glass rounded-2xl p-6">
-        <h3 className="text-sm font-semibold text-white/70 uppercase tracking-widest mb-1">Retention vs Parental Cultural Distance</h3>
-        <p className="text-xs text-white/50 mb-4">Composite: attrition rate + earnings potential + cognitive focus. Peaks at ψ* ≈ 0.147.</p>
-        <ResponsiveContainer width="100%" height={220}>
-          <AreaChart data={CURVE_DATA} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-            <defs>
-              <linearGradient id="retGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={ACCENT} stopOpacity={0.3} />
-                <stop offset="95%" stopColor={ACCENT} stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-            <XAxis dataKey="psi" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} tickFormatter={v => v.toFixed(2)} />
-            <YAxis domain={[0, 100]} tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} />
-            <Tooltip content={<Tip />} />
-            <ReferenceLine x={parseFloat(optPsi.toFixed(2))} stroke="#D4AF37" strokeDasharray="4 3"
-              label={{ value: `ψ*=${optPsi}`, position: 'top', fill: '#D4AF37', fontSize: 10 }} />
-            <Area type="monotone" dataKey="retention" name="Retention Score" stroke={ACCENT} strokeWidth={2.5} fill="url(#retGrad)" dot={false} />
-            <ReferenceDot x={parseFloat(psi.toFixed(2))} y={couplePoint.retention} r={6} fill={ACCENT} stroke="white" strokeWidth={2} />
-          </AreaChart>
-        </ResponsiveContainer>
       </div>
 
       {/* Methodology */}
@@ -232,12 +202,11 @@ export default function AttritionApp({ onBack }) {
           </p>
           <div className="flex items-center justify-center gap-8 pt-2">
             {[
-              { v: 'ψ*=0.147', l: 'Optimal parental distance' },
-              { v: '−45%', l: 'Attrition at ψ* vs worst' },
-              { v: 'n=843k', l: 'ACS + NLSY sample' },
+              { v: '−23%',  l: 'Turnover reduction at optimal ancestry mix' },
+              { v: '843k',  l: 'Research participants' },
             ].map(s => (
               <div key={s.l} className="text-center">
-                <p className="text-lg font-bold font-mono" style={{ color: ACCENT }}>{s.v}</p>
+                <p className="text-lg font-bold font-mono text-white">{s.v}</p>
                 <p className="text-xs text-white/50">{s.l}</p>
               </div>
             ))}

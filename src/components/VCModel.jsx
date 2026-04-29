@@ -280,6 +280,7 @@ export default function VCModel({ onBack }) {
 
   const [refinements, setRefinements]     = useState({});
   const [expandedRefine, setExpandedRefine] = useState(null);
+  const [howOpen, setHowOpen]             = useState(false);
 
   const timerRef   = useRef(null);
   const termRef    = useRef(null);
@@ -423,6 +424,143 @@ export default function VCModel({ onBack }) {
     </div>
   );
 
+  // ── How It Works ─────────────────────────────────────────────────────────────
+
+  const HowItWorks = (
+    <div>
+      <button onClick={() => setHowOpen(o => !o)}
+        className="w-full flex items-center justify-between px-5 py-3.5 rounded-2xl transition-all"
+        style={{ background: howOpen ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.10)' }}>
+        <span className="text-sm font-semibold text-white/60">How It Works</span>
+        <span className="text-white/30 text-xs">{howOpen ? '▲ Close' : '▼ Expand'}</span>
+      </button>
+
+      {howOpen && (
+        <div className="mt-3 space-y-4">
+
+          {/* Pipeline */}
+          <div className="glass rounded-2xl p-5 space-y-4">
+            <p className="text-xs font-semibold text-white/40 uppercase tracking-widest">Analysis Pipeline</p>
+            <div className="flex items-stretch gap-1.5 flex-wrap">
+              {[
+                { icon: '⚡', label: '12 Factors', sub: 'per company', color: '#60a5fa' },
+                { icon: '⚖', label: 'Stage Weights', sub: 'Early / A / Growth', color: '#ff8fa3' },
+                { icon: '🔬', label: 'AI Research', sub: 'Claude Haiku', color: '#a78bfa', note: 'research mode' },
+                { icon: '∿', label: 'Monte Carlo', sub: '2,000 iter · σ=10', color: '#D4AF37' },
+                { icon: '🌲', label: 'Random Forest', sub: '10 trees · 7 factors each', color: '#22c55e' },
+                { icon: '🏆', label: 'Final Score', sub: 'MC 60% + RF 40%', color: '#f97316' },
+              ].map((s, i, arr) => (
+                <div key={s.label} className="flex items-center gap-1.5">
+                  <div className="rounded-xl px-3 py-2.5 text-center" style={{ minWidth: 96, background: s.color + '14', border: `1px solid ${s.color}30` }}>
+                    <p className="text-base mb-0.5">{s.icon}</p>
+                    <p className="text-xs font-semibold leading-tight" style={{ color: s.color }}>{s.label}</p>
+                    <p className="text-xs text-white/28 leading-tight mt-0.5">{s.sub}</p>
+                    {s.note && <p className="text-xs text-white/18 italic mt-0.5">{s.note}</p>}
+                  </div>
+                  {i < arr.length - 1 && <span className="text-white/18 text-base shrink-0">→</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 12 Factors + Composite formula */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="glass rounded-2xl p-5 space-y-3">
+              <p className="text-xs font-semibold text-white/40 uppercase tracking-widest">12 Factors — {STAGE_LABELS[stage].label}</p>
+              <div className="space-y-1.5">
+                {getFactors(stage).sort((a, b) => b.weight - a.weight).map(f => {
+                  const w = Math.round(f.weight * 100);
+                  const barColor = w >= 14 ? '#C41E3A' : w >= 8 ? '#D4AF37' : '#60a5fa';
+                  return (
+                    <div key={f.key} className="flex items-center gap-2">
+                      <span className="text-xs text-white/50 w-28 shrink-0">{f.label}</span>
+                      <div className="flex-1 h-1.5 rounded-full bg-white/6 overflow-hidden">
+                        <div className="h-full rounded-full" style={{ width: `${Math.min(100, w * 5)}%`, background: barColor }} />
+                      </div>
+                      <span className="text-xs font-mono text-white/35 w-6 text-right shrink-0">{w}%</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* Monte Carlo */}
+              <div className="glass rounded-2xl p-5 space-y-2">
+                <p className="text-xs font-semibold text-white/40 uppercase tracking-widest">Monte Carlo — Uncertainty</p>
+                <p className="text-xs text-white/40 leading-relaxed">Each factor sampled 2,000× with Gaussian noise (σ=10). Outputs P10–P90 confidence band around mean score.</p>
+                <div className="flex items-end gap-0.5 h-12 mt-2">
+                  {[1,2,4,7,11,15,18,15,11,7,4,2,1].map((h, i) => (
+                    <div key={i} className="flex-1 rounded-t transition-all"
+                      style={{ height: `${h * 3.5}px`, background: i >= 4 && i <= 8 ? 'rgba(212,175,55,0.65)' : 'rgba(212,175,55,0.2)' }} />
+                  ))}
+                </div>
+                <div className="flex justify-between text-xs text-white/22 mt-1">
+                  <span>P10</span><span className="text-amber-400/50">Mean</span><span>P90</span>
+                </div>
+              </div>
+
+              {/* Random Forest */}
+              <div className="glass rounded-2xl p-5 space-y-2">
+                <p className="text-xs font-semibold text-white/40 uppercase tracking-widest">Random Forest — 10 Trees</p>
+                <p className="text-xs text-white/40 leading-relaxed">Each tree uses a random 7-factor subset. Ensemble average reduces single-metric bias.</p>
+                <div className="space-y-1 mt-1">
+                  {[
+                    { t: 'T1', f: 'Mkt · Moat · Team · PMF · Growth · Network · UnitEc', s: 82 },
+                    { t: 'T2', f: 'Team · PMF · Tech · Timing · Mkt · Moat · Burn',       s: 79 },
+                    { t: 'T3', f: 'Net · PMF · Team · UnitEc · Mkt · Tech · Timing',       s: 85 },
+                    { t: '⋯', f: '7 more trees with bootstrapped subsets…',                s: null },
+                  ].map((row, i) => (
+                    <div key={i} className="flex items-center gap-2 px-2.5 py-1 rounded-lg text-xs"
+                      style={{ background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.12)' }}>
+                      <span className="font-mono text-green-400/40 w-4 shrink-0">{row.t}</span>
+                      <span className="text-white/30 flex-1 truncate">{row.f}</span>
+                      {row.s && <span className="font-mono text-green-400/55 shrink-0">{row.s}</span>}
+                    </div>
+                  ))}
+                  <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg text-xs"
+                    style={{ background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.35)' }}>
+                    <span className="font-mono text-green-400 w-4 shrink-0">avg</span>
+                    <span className="text-green-300/55 flex-1">ensemble vote</span>
+                    <span className="font-mono font-bold text-green-400">RF Score</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Data Confidence */}
+          <div className="glass rounded-2xl p-5 space-y-3">
+            <p className="text-xs font-semibold text-white/40 uppercase tracking-widest">Data Confidence Rating</p>
+            <p className="text-xs text-white/40 leading-relaxed">In Research mode, Claude evaluates how much credible public information exists for each company and assigns a badge automatically. Low-confidence companies can be overridden with proprietary data room inputs.</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {Object.entries(CONF).map(([k, c]) => (
+                <div key={k} className="rounded-xl px-4 py-3 space-y-2" style={{ background: c.bg, border: `1px solid ${c.border}` }}>
+                  <span className="text-xs px-2 py-0.5 rounded-full font-mono" style={{ color: c.color, background: c.bg, border: `1px solid ${c.border}` }}>{c.label}</span>
+                  <p className="text-xs text-white/42 leading-relaxed">{c.title.split('—')[1]?.trim()}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Score formula */}
+          <div className="glass rounded-2xl p-5 space-y-3">
+            <p className="text-xs font-semibold text-white/40 uppercase tracking-widest">Final Score Formula</p>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="px-4 py-2 rounded-xl text-xs font-mono font-semibold" style={{ background: 'rgba(212,175,55,0.12)', border: '1px solid rgba(212,175,55,0.35)', color: '#D4AF37' }}>MC Mean × 0.60</div>
+              <span className="text-white/30 text-lg">+</span>
+              <div className="px-4 py-2 rounded-xl text-xs font-mono font-semibold" style={{ background: 'rgba(34,197,94,0.12)', border: '1px solid rgba(34,197,94,0.35)', color: '#22c55e' }}>RF Score × 0.40</div>
+              <span className="text-white/30 text-lg">=</span>
+              <div className="px-4 py-2 rounded-xl text-xs font-mono font-semibold" style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.18)', color: 'white' }}>Final Score (0–100)</div>
+            </div>
+            <p className="text-xs text-white/25">Scatter axes: X = Market Opp (TAM 35% · Moat 35% · Network 30%) · Y = Execution (Team 40% · PMF 30% · UnitEcon 30%)</p>
+          </div>
+
+        </div>
+      )}
+    </div>
+  );
+
   // ── Idle: choice ──────────────────────────────────────────────────────────────
 
   if (phase === 'idle' && idleMode === 'choice') return (
@@ -481,6 +619,8 @@ export default function VCModel({ onBack }) {
             </button>
           </div>
         </div>
+
+        {HowItWorks}
       </div>
     </div>
   );
