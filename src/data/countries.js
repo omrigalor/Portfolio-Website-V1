@@ -1,8 +1,7 @@
 // All countries present in the CPS ancestry data (cps_ready.dta).
 // isoCode = ISO 3166-1 alpha-3; ancestryGroup = maps to the cultural distance matrix.
-// Countries are sorted roughly by frequency in the CPS cross-national marriage sample.
 
-export const COUNTRIES = [
+const COUNTRIES_RAW = [
   // Americas
   { isoCode: 'MEX', label: 'Mexico',              region: 'Latin America',       ancestryGroup: 'latin_american' },
   { isoCode: 'CAN', label: 'Canada',               region: 'North America',       ancestryGroup: 'british' },
@@ -144,6 +143,8 @@ export const COUNTRIES = [
   { isoCode: 'TZA', label: 'Tanzania',             region: 'Sub-Saharan Africa',  ancestryGroup: 'african' },
   { isoCode: 'ZWE', label: 'Zimbabwe',             region: 'Sub-Saharan Africa',  ancestryGroup: 'african' },
 ];
+
+export const COUNTRIES = [...COUNTRIES_RAW].sort((a, b) => a.label.localeCompare(b.label));
 
 export const EDUCATION_OPTIONS = [
   { id: 'no_hs',       label: 'No High School Diploma' },
