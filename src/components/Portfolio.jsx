@@ -191,8 +191,6 @@ export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan }
 
           <a
             href="/Portfolio-Website-V1/resume.html"
-            target="_blank"
-            rel="noreferrer"
             className="inline-flex items-center gap-2 px-8 py-3 rounded-full border transition-all text-sm font-semibold"
             style={{ borderColor: '#C41E3A80', background: 'rgba(196,30,58,0.12)', color: '#ff8fa3' }}
           >
