@@ -25,11 +25,11 @@ const EmailIcon = () => (
 
 const EXPERIENCE = [
   {
-    role: 'Founder & CEO',
+    role: 'Co-Founder & CEO',
     org: 'Reprium',
-    period: '2023 – Present',
-    location: 'Providence, RI / Remote',
-    desc: 'Built a science-based matching engine using pre-historic migratory distance. Presented to Bumble for formal acquisition review. Filed three predictive analytics model patents.',
+    period: '2024 – 2025',
+    location: 'New York City, US',
+    desc: 'Developed & commercialized a predictive analytics platform forecasting relationship longevity & family outcomes. Secured Bumble\'s board-level acquisition review. Designed core model IP isolating the causal impact of cultural, behavioral and demographic factors.',
     tags: ['Predictive Analytics', 'NLP', 'React', 'Stata', 'Python'],
     accent: '#C41E3A',
   },
@@ -73,18 +73,18 @@ const EXPERIENCE = [
 
 const EDUCATION = [
   {
-    degree: 'MSc Artificial Intelligence',
-    school: 'Reichman University (IDC Herzliya)',
-    period: '2022 – 2023',
-    gpa: '4.0 / 4.0',
-    flag: '🇮🇱',
-  },
-  {
     degree: 'BA Economics',
     school: 'Brown University',
-    period: '2013 – 2017',
+    period: '2015 – 2019',
     gpa: '4.0 / 4.0',
     flag: '🇺🇸',
+  },
+  {
+    degree: 'MBA in AI & Big Data',
+    school: 'Reichman University (IDC)',
+    period: '2023 – 2024',
+    gpa: 'First Year',
+    flag: '🇮🇱',
   },
 ];
 
@@ -271,6 +271,16 @@ export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan }
             >
               <EmailIcon />
               Email
+            </a>
+            <a
+              href="/Portfolio-Website-V1/resume.html"
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-xs font-semibold"
+              style={{ borderColor: '#C41E3A80', background: 'rgba(196,30,58,0.12)', color: '#ff8fa3' }}
+            >
+              <span>↓</span>
+              Résumé
             </a>
           </div>
         </section>
