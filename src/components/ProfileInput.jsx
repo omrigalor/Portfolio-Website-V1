@@ -189,6 +189,7 @@ export default function ProfileInput({ onExit, hideBack = false }) {
   const [personB, setPersonB] = useState({ ...DEFAULT_PERSON, name: '', country1: 'DEU' });
   const [result, setResult] = useState(null);
   const [showCalc, setShowCalc] = useState(false);
+  const [calcStep, setCalcStep] = useState(0);
 
   const ancestriesA = [personA.country1, personA.country2].filter(Boolean);
   const ancestriesB = [personB.country1, personB.country2].filter(Boolean);
@@ -203,10 +204,22 @@ export default function ProfileInput({ onExit, hideBack = false }) {
       eduB: personB.education,
     });
     setResult(res);
-    setShowCalc(false);
+    setShowCalc(true);
+    setCalcStep(0);
+    // Animate steps: 0→1→2→3→4→5→6, one every 500ms
+    [100, 600, 1100, 1600, 2100, 2600].forEach((delay, i) => {
+      setTimeout(() => setCalcStep(i + 1), delay);
+    });
+    // Auto-dismiss after animation completes
     setTimeout(() => {
-      document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+      setShowCalc(false);
+      setTimeout(() => document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' }), 200);
+    }, 3300);
+  };
+
+  const dismissCalc = () => {
+    setShowCalc(false);
+    setTimeout(() => document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
   };
 
   const isValid = personA.country1 && personB.country1;
@@ -262,13 +275,6 @@ export default function ProfileInput({ onExit, hideBack = false }) {
           </div>
         )}
 
-        {showCalc && isValid && liveScore && (
-          <div className="glass rounded-2xl p-6 mb-6 animate-scale-in">
-            <h3 className="text-sm font-semibold text-white/60 mb-4 uppercase tracking-widest">Step-by-Step Calculation</h3>
-            <CalculationEngine result={liveScore} revealStep={6} />
-          </div>
-        )}
-
         {!isValid && (
           <div className="text-center py-8 text-white/25 text-sm">
             Select countries for both people to compute compatibility
@@ -291,6 +297,32 @@ export default function ProfileInput({ onExit, hideBack = false }) {
           </div>
         )}
       </div>
+
+      {/* Calculation loading overlay */}
+      {showCalc && result && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ background: 'rgba(6,6,20,0.92)', backdropFilter: 'blur(20px)' }}>
+          <div className="max-w-lg w-full mx-4 animate-scale-in">
+            <div className="glass rounded-2xl p-6 border border-white/10 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-white/40 uppercase tracking-widest font-mono mb-0.5">Analyzing Profiles</p>
+                  <p className="text-sm font-semibold text-white">
+                    {personA.name || 'Person A'} × {personB.name || 'Person B'}
+                  </p>
+                </div>
+                <button
+                  onClick={dismissCalc}
+                  className="text-xs text-white/30 hover:text-white/60 border border-white/10 hover:border-white/20 px-3 py-1.5 rounded-full transition-all"
+                >
+                  Skip →
+                </button>
+              </div>
+              <CalculationEngine result={result} revealStep={calcStep} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

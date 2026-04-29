@@ -206,104 +206,44 @@ export default function AutoDemo({ onExit, hideBack = false }) {
           ))}
         </div>
 
-        {/* Main layout */}
-        <div className={`grid gap-6 mb-8 ${showCalcPanel ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 max-w-2xl mx-auto'}`}>
-          {/* Profiles column */}
-          <div className="space-y-4">
-            <h2 className="text-sm font-semibold text-white/70 uppercase tracking-widest">Profiles</h2>
-
-            {demoStep >= 1 && (
-              <ProfileCard
-                person={DEMO_PERSON_A}
-                fieldsVisible={aFields}
-                side="A"
-                pulse={demoStep >= 10 && demoStep < 16}
-              />
-            )}
-
-            {demoStep >= 1 && (
-              <ProfileCard
-                person={DEMO_PERSON_B}
-                fieldsVisible={bFields}
-                side="B"
-                pulse={demoStep >= 10 && demoStep < 16}
-              />
-            )}
-
-            {/* ψ highlight card */}
-            {demoStep >= 10 && (
-              <div className="glass-strong rounded-2xl p-5 animate-scale-in border border-red-700/20">
-                <p className="text-xs text-white/58 mb-3 font-mono">Cultural Distance</p>
-                <div className="flex items-baseline gap-3">
-                  <span className="text-4xl font-bold text-white font-mono">{result.psi.toFixed(3)}</span>
-                  <div>
-                    <p className="text-xs text-white/70">ψ (psi)</p>
-                    <p className="text-xs text-white/45">vs optimal {result.optimalPsi}</p>
-                  </div>
-                </div>
-                {demoStep >= 11 && (
-                  <div className="mt-3 flex items-baseline gap-3 animate-fade-in">
-                    <span className="text-2xl font-bold text-white/70 font-mono">{result.psi2.toFixed(5)}</span>
-                    <p className="text-xs text-white/58">ψ² = ψ²</p>
-                  </div>
-                )}
-                <div className="mt-3 text-xs text-white/45">
-                  {DEMO_PERSON_A.ancestriesLabel} × {DEMO_PERSON_B.ancestriesLabel} · {result.isYoung ? 'Under-30 model' : 'Full model'}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Calculation column */}
-          {showCalcPanel && (
-            <div className="animate-slide-right">
-              <h2 className="text-sm font-semibold text-white/70 uppercase tracking-widest mb-4">Calculation</h2>
-              <CalculationEngine
-                result={result}
-                revealStep={
-                  demoStep === 10 ? 1 :
-                  demoStep === 11 ? 2 :
-                  demoStep === 12 ? 3 :
-                  demoStep === 13 ? 4 :
-                  demoStep >= 14 ? 5 :
-                  demoStep >= 15 ? 6 : 0
-                }
-              />
-            </div>
+        {/* Profiles — always single column */}
+        <div className="grid grid-cols-1 max-w-2xl mx-auto gap-4 mb-8">
+          <h2 className="text-sm font-semibold text-white/70 uppercase tracking-widest">Profiles</h2>
+          {demoStep >= 1 && (
+            <ProfileCard person={DEMO_PERSON_A} fieldsVisible={aFields} side="A" pulse={false} />
+          )}
+          {demoStep >= 1 && (
+            <ProfileCard person={DEMO_PERSON_B} fieldsVisible={bFields} side="B" pulse={false} />
           )}
         </div>
 
-        {/* Final score reveal */}
-        {demoStep >= 14 && !showResults && (
-          <div className="glass-strong rounded-2xl p-6 mb-8 animate-scale-in border border-red-700/20">
-            <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
-              <div>
-                <p className="text-xs text-white/58 mb-1 tracking-widest uppercase">Conditional Survival</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-6xl font-bold text-white">{result.score}</span>
-                  <span className="text-2xl text-white/45">/100</span>
+        {/* Calculation overlay — appears while computing, auto-dismissed at showResults */}
+        {showCalcPanel && !showResults && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center"
+            style={{ background: 'rgba(6,6,20,0.90)', backdropFilter: 'blur(20px)' }}>
+            <div className="max-w-lg w-full mx-4 animate-scale-in">
+              <div className="glass rounded-2xl p-6 border border-white/10 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-white/40 uppercase tracking-widest font-mono mb-0.5">Computing</p>
+                    <p className="text-sm font-semibold text-white">Compatibility Analysis</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                    <span className="text-xs text-white/40 font-mono">LIVE</span>
+                  </div>
                 </div>
-                <p className="text-xs text-white/45 mt-1">Given they marry</p>
-              </div>
-              <div className="text-white/20 text-2xl hidden md:block">×</div>
-              <div className="text-center">
-                <p className="text-xs text-white/58 mb-1 tracking-widest uppercase">Marriage Prob.</p>
-                <p className="text-3xl font-bold" style={{ color: '#f59e0b' }}>
-                  {Math.round((result.marriageProb ?? 1) * 100)}%
-                </p>
-                <p className="text-xs text-white/45 mt-1">vs same-group baseline</p>
-              </div>
-              <div className="text-white/20 text-2xl hidden md:block">=</div>
-              <div className="text-center">
-                <p className="text-xs text-white/58 mb-1 tracking-widest uppercase">Market Score</p>
-                <p className="text-3xl font-bold" style={{ color: '#C41E3A' }}>{result.marketScore}</p>
-                <p className="text-xs text-white/45 mt-1">Adjusted</p>
-              </div>
-              <div className="h-16 w-px bg-white/10 hidden md:block" />
-              <div className="md:ml-auto text-center">
-                <p className="text-xs text-white/58 mb-1 tracking-widest uppercase">Overall</p>
-                <p className="text-3xl font-bold" style={{ color: '#D4AF37' }}>{result.overall}</p>
-                <p className="text-xs text-white/45 mt-1">Rel. + Child</p>
+                <CalculationEngine
+                  result={result}
+                  revealStep={
+                    demoStep >= 15 ? 6 :
+                    demoStep >= 14 ? 5 :
+                    demoStep === 13 ? 4 :
+                    demoStep === 12 ? 3 :
+                    demoStep === 11 ? 2 :
+                    demoStep === 10 ? 1 : 0
+                  }
+                />
               </div>
             </div>
           </div>

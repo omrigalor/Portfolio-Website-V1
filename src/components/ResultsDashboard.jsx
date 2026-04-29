@@ -1,5 +1,5 @@
 import ScoreGauge, { ScoreBar } from './ScoreGauge';
-import { SynergyChartMain, SparkCohesionChart, ChildOutcomesChart } from './CurveVisualizer';
+import { SynergyChartMain, SparkCohesionChart } from './CurveVisualizer';
 
 function InsightCard({ title, children, accent = 'red' }) {
   const borderColor = accent === 'gold' ? 'border-yellow-500/20' : 'border-red-700/20';
@@ -32,8 +32,13 @@ export default function ResultsDashboard({ result, personA, personB, animated = 
 
   const {
     psi, score, marketScore, marriageProb, overall, isYoung, optimalPsi,
-    child, sparkCohesion,
+    child, sparkCohesion, fe_age, fe_edu, fe_rel,
   } = result;
+
+  // Normalize FEs to 0–100 compatibility scores (lower FE = less separation risk = better)
+  const ageScore       = Math.round(Math.max(0, Math.min(100, 100 * (0.128 - fe_age)           / 0.182)));
+  const religiousScore = Math.round(Math.max(0, Math.min(100, 100 * (0.025 - (fe_rel ?? 0))    / 0.089)));
+  const eduScore       = Math.round(Math.max(0, Math.min(100, 100 * (0.007 - fe_edu)           / 0.018)));
 
   const marriagePct = Math.round((marriageProb ?? 1) * 100);
   const isCrossContinent = (marriageProb ?? 1) < 0.99;
@@ -49,11 +54,10 @@ export default function ResultsDashboard({ result, personA, personB, animated = 
     sparkCohesion.spark > 60 && sparkCohesion.cohesion < 50 ? 'High Spark / Lower Cohesion' :
     'Balanced Cultural Synergy';
 
-  const riskLevel = score >= 80 ? 'Low' : score >= 60 ? 'Moderate' : score >= 40 ? 'Elevated' : 'High';
-
   return (
-    <div className="space-y-10 pb-12">
-      {/* Top — overall + main scores */}
+    <div className="space-y-8 pb-12">
+
+      {/* ── 1. Main gauges ── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="glass-strong rounded-2xl p-6 flex flex-col items-center justify-center text-center md:col-span-1 animate-pulse-glow">
           <p className="text-xs text-white/58 mb-4 tracking-widest uppercase">Overall Compatibility</p>
@@ -71,7 +75,61 @@ export default function ResultsDashboard({ result, personA, personB, animated = 
         </div>
       </div>
 
-      {/* Cultural distance meter */}
+      {/* ── 2. Child Well-Being Breakdown (near top) ── */}
+      <div className="glass rounded-2xl p-6 space-y-5" style={{ borderTop: '2px solid rgba(212,175,55,0.35)' }}>
+        <div>
+          <h3 className="text-base font-semibold text-white">Child Well-Being</h3>
+          <p className="text-xs text-white/50 mt-0.5">Predicted outcomes for prospective children · ACS 5yr + NLSY79 data (n=5.3M)</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { label: 'Economic Prosperity', score: child.prosperity, color: '#D4AF37', note: 'Peaks at ψ*=0.208' },
+            { label: 'Educational Attainment', score: child.education, color: '#60a5fa', note: 'Peaks at ψ*=0.189' },
+            { label: 'Creativity', score: child.creativity, color: '#a78bfa', note: 'Peaks at ψ*=0.205' },
+            { label: 'Focus', score: child.focus, color: '#34d399', note: 'Linear — lower ψ better' },
+          ].map(d => (
+            <div key={d.label} className="glass rounded-xl p-4 text-center space-y-2">
+              <p className="text-3xl font-bold font-mono" style={{ color: d.color }}>{d.score}</p>
+              <div className="h-1.5 bg-white/8 rounded-full overflow-hidden">
+                <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${d.score}%`, background: d.color }} />
+              </div>
+              <p className="text-xs font-medium text-white/65">{d.label}</p>
+              <p className="text-xs text-white/30">{d.note}</p>
+            </div>
+          ))}
+        </div>
+        <InsightCard title="Child Outlook" accent="gold">
+          Children from {personA?.name ?? 'Person A'} × {personB?.name ?? 'Person B'}'s cultural pairing show {child.creativity >= 75 ? 'strong' : 'moderate'} creative potential and {child.focus >= 75 ? 'high' : 'moderate'} focus. An intermediate cultural mix delivers the strongest cognitive and economic outcomes.
+        </InsightCard>
+      </div>
+
+      {/* ── 3. Relationship Compatibility Factors ── */}
+      <div className="glass rounded-2xl p-6 space-y-5" style={{ borderTop: '2px solid rgba(196,30,58,0.3)' }}>
+        <div>
+          <h3 className="text-base font-semibold text-white">Relationship Compatibility Factors</h3>
+          <p className="text-xs text-white/50 mt-0.5">Fixed effects from the CPS separation regression — each factor's individual contribution to stability</p>
+        </div>
+        <div className="space-y-5">
+          {[
+            { label: 'Age Compatibility', score: ageScore, color: '#fb923c', note: 'Based on HDFE age fixed effects from predictions.dta — younger couples average higher separation risk' },
+            { label: 'Religious Alignment', score: religiousScore, color: '#f472b6', note: 'Same-religion couples are meaningfully more stable — religion-pair FEs from CPS micro-data' },
+            { label: 'Education Alignment', score: eduScore, color: '#34d399', note: 'Higher education levels correlate with lower separation rates; computed from education FEs' },
+          ].map(d => (
+            <div key={d.label}>
+              <div className="flex justify-between text-xs mb-1.5">
+                <span className="text-white/75 font-medium">{d.label}</span>
+                <span className="font-mono text-white font-bold">{d.score} <span className="text-white/30 font-normal">/ 100</span></span>
+              </div>
+              <div className="h-2.5 bg-white/8 rounded-full overflow-hidden">
+                <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${d.score}%`, background: d.color }} />
+              </div>
+              <p className="text-xs text-white/35 mt-1">{d.note}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── 4. Cultural distance meter ── */}
       <div className="glass rounded-2xl p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
           <div>
@@ -113,50 +171,26 @@ export default function ResultsDashboard({ result, personA, personB, animated = 
         </p>
       </div>
 
-      {/* Spark vs Cohesion */}
+      {/* ── 5. Spark vs Cohesion ── */}
       <div className="glass rounded-2xl p-6">
         <Section title="Spark vs. Cohesion" subtitle={dynamicLabel}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="flex-1">
-                  <ScoreBar score={sparkCohesion.spark} label="Spark" color="#C41E3A" animate={animated} />
-                </div>
-                <div className="flex-1">
-                  <ScoreBar score={sparkCohesion.cohesion} label="Cohesion" color="#60a5fa" animate={animated} />
-                </div>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <ScoreBar score={sparkCohesion.spark} label="Spark" color="#C41E3A" animate={animated} />
               </div>
-              <p className="text-xs text-white/58 leading-relaxed">
-                Balanced cultural distance creates both cohesion and spark. The strongest matches are not always the most similar or the most different.
-              </p>
-              <InsightCard title="Cohesion vs Spark" accent="red">
-                Cultural similarities promote cohesion — effective communication and shared values. Cultural differences create spark — exploration and discovery. {personA?.name ?? 'Person A'} and {personB?.name ?? 'Person B'} sit {placement}, yielding a {sparkCohesion.cohesion > 60 ? 'cohesion-dominant' : sparkCohesion.spark > 60 ? 'spark-dominant' : 'balanced'} dynamic.
-              </InsightCard>
+              <div className="flex-1">
+                <ScoreBar score={sparkCohesion.cohesion} label="Cohesion" color="#60a5fa" animate={animated} />
+              </div>
             </div>
-            <SparkCohesionChart psi={psi} />
+            <InsightCard title="Cohesion vs Spark" accent="red">
+              Cultural similarities promote cohesion — effective communication and shared values. Cultural differences create spark — exploration and discovery. {personA?.name ?? 'Person A'} and {personB?.name ?? 'Person B'} sit {placement}, yielding a {sparkCohesion.cohesion > 60 ? 'cohesion-dominant' : sparkCohesion.spark > 60 ? 'spark-dominant' : 'balanced'} dynamic.
+            </InsightCard>
           </div>
         </Section>
       </div>
 
-      {/* Child well-being */}
-      <div className="glass rounded-2xl p-6">
-        <Section title="Child Well-Being Outlook" subtitle="Predicted outcomes for prospective children based on cultural synergy">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-3">
-              <ScoreBar score={child.prosperity} label="Economic Prosperity" color="#D4AF37" animate={animated} />
-              <ScoreBar score={child.education} label="Educational Attainment" color="#60a5fa" animate={animated} />
-              <ScoreBar score={child.creativity} label="Creativity & Originality" color="#a78bfa" animate={animated} />
-              <ScoreBar score={child.focus} label="Focus & Attention Span" color="#34d399" animate={animated} />
-              <InsightCard title="Child Outlook" accent="gold">
-                Children from {personA?.name ?? 'Person A'} × {personB?.name ?? 'Person B'}'s cultural pairing show {child.creativity >= 75 ? 'strong' : 'moderate'} creative potential and {child.focus >= 75 ? 'high' : 'moderate'} focus. An intermediate cultural mix delivers the strongest cognitive outcomes.
-              </InsightCard>
-            </div>
-            <ChildOutcomesChart psi={psi} />
-          </div>
-        </Section>
-      </div>
-
-      {/* Insights grid */}
+      {/* ── 6. Insights ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <InsightCard title="Why This Score" accent="red">
           Reprium analyzed over 22,000 real cross-national couples to find that an intermediate cultural background difference — not too similar, not too different — leads to the most stable, lasting relationships. Your score reflects where this pairing sits on that curve.
@@ -164,41 +198,20 @@ export default function ResultsDashboard({ result, personA, personB, animated = 
         <InsightCard title="Longevity vs. Reality" accent="gold">
           Relationship longevity score: <strong className="text-white">{score}/100</strong>. Adjusted for real-world pairing likelihood: <strong className="text-white">{marketScore}/100</strong>. {isCrossContinent ? `Couples from these two backgrounds make up only ${marriagePct}% of international pairings in our data.` : 'This background combination is common in real-world couples.'}
         </InsightCard>
-        <InsightCard title="Best Match Dynamic" accent="red">
-          {dynamicLabel}. {psi < optimalPsi
-            ? 'Cultural proximity provides strong shared values. Seek partners with slightly more cultural contrast to unlock additional spark.'
-            : psi > optimalPsi + 0.05
-            ? 'Rich diversity creates excitement and perspective. Invest in shared routines and communication to reinforce cohesion.'
-            : 'This pairing sits near the optimal cultural synergy zone — where cohesion and spark are naturally balanced.'}
-        </InsightCard>
-        <InsightCard title="Model Note" accent="gold">
-          Coefficients from Reprium's published regressions: separation β₁=−0.31, β₂=0.64, ψ*=0.240 (n=22,091); child wages β₁=0.79, β₂=−1.89; education β₁=2.21, β₂=−5.82; creativity β₁=0.11, β₂=−0.27. Market adjustment derived from CPS micro-data (n=839k couples, 1994–2023). Fixed effects remain approximate.
-        </InsightCard>
       </div>
 
-      {/* Methodology */}
+      {/* ── 7. Methodology ── */}
       <div className="glass rounded-2xl p-6 space-y-3">
         <h3 className="text-sm font-semibold text-white/70 uppercase tracking-widest">Statistical Methodology</h3>
         <div className="space-y-2 text-xs text-white/65 leading-relaxed">
-          <p><strong className="text-white/85">Data:</strong> CPS micro-data, 22,091 cross-national married couples (1994–2023). Each observation is a couple where both partners have known non-US ancestral origins identified by ISO country code.</p>
-          <p><strong className="text-white/85">Cultural distance ψ:</strong> Pre-historic migratory distance between ancestral homelands, normalised to [0,1] (Pemberton et al. 2013). Captures genetic, linguistic, and institutional divergence accumulated over millennia — not modern political borders.</p>
-          <p><strong className="text-white/85">Separation regression:</strong> reghdfe divorce ma mas [pw=lnkfw1ywt], absorb(year cohortFE ancestry1 ancestry2 continent_pair ageFE educFE), cluster(ancestry1 ancestry2). The quadratic in ψ captures the inverted-U: β₁=−0.31 (linear, negative) and β₂=+0.64 (squared, positive) → minimum separation at ψ*=0.240.</p>
-          <p><strong className="text-white/85">Fixed effects:</strong> Per-country ancestry FEs from the regression predictions file; age FEs (ageFE2 HDFE component, ages 18–35); religion pair FEs from CPS–religion merge (mean divorce rate deviation by religion pair, n≥30).</p>
-          <p><strong className="text-white/85">Market adjustment:</strong> P(ever marry) = geometric mean of observed intermarriage rates for this continental pairing in the CPS sample, computed symmetrically. Actual survival = P(survive | married) × P(marry).</p>
-          <p><strong className="text-white/85">Child outcomes:</strong> ACS 5yr + NLSY79 data (n=5.3M). Four separate OLS regressions of log wages, educational attainment, originality, and total activities on ψ and ψ² with ancestry and age FEs.</p>
+          <p><strong className="text-white/85">Data:</strong> CPS micro-data, 22,091 cross-national married couples (1994–2023). Cultural distance ψ = pre-historic migratory distance between ancestral homelands, normalised to [0,1] (Pemberton et al. 2013).</p>
+          <p><strong className="text-white/85">Separation regression:</strong> reghdfe with ancestry, age, education, religion, and continent-pair fixed effects. β₁=−0.31, β₂=+0.64, ψ*=0.240 (full-sample); β₁=−0.16, β₂=+0.24, ψ*=0.338 (under-30 subgroup).</p>
+          <p><strong className="text-white/85">Child outcomes:</strong> ACS 5yr + NLSY79 (n=5.3M). Four OLS regressions of log wages, educational attainment, originality, and total activities on ψ and ψ² with ancestry and age FEs.</p>
+          <p><strong className="text-white/85">Market adjustment:</strong> P(ever marry) = geometric mean of observed intermarriage rates for this continental pairing in CPS. Overall = P(survive | married) × P(marry).</p>
         </div>
       </div>
 
-      {/* Effect size callout */}
-      <div className="glass rounded-2xl p-5 border-l-4 border-yellow-500/40">
-        <p className="text-xs font-semibold text-white/70 uppercase tracking-widest mb-2">Effect Size — From Baseline Regression</p>
-        <p className="text-sm text-white/65 leading-relaxed">
-          Moving from ψ_min to the optimal ψ*=0.240 reduces separation probability by <strong className="text-white/90">−56%</strong>. Moving from ψ_max to ψ* reduces it by <strong className="text-white/90">−62%</strong>. Both effects are statistically significant at p≤0.002 (U-test for the inverted-U). The effect is robust across age, education, and ancestry controls — and strengthens for couples below age 30.
-        </p>
-        <p className="text-xs text-white/45 mt-2">Source: baseline.tex Column (3), full fixed-effects model · n=22,091 couples · 2,007 ancestry pairs.</p>
-      </div>
-
-      {/* Footer disclaimer */}
+      {/* ── Footer ── */}
       <div className="text-center pt-4 border-t border-white/5">
         <p className="text-xs text-white/45 max-w-2xl mx-auto leading-relaxed">
           Coefficients and market-adjustment probabilities sourced directly from Reprium empirical research. Fixed effects are approximate; the full model uses fitted values from the complete CPS regression.
