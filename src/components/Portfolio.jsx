@@ -153,7 +153,7 @@ function ExperienceCard({ item }) {
 function PatentCard({ item, onOpen }) {
   return (
     <div
-      className={`glass rounded-2xl p-6 flex flex-col gap-4 transition-all ${item.live ? 'hover:bg-white/6 cursor-pointer' : 'opacity-80 cursor-default'}`}
+      className={`glass rounded-2xl p-6 flex flex-col gap-4 transition-all ${item.live ? 'hover:bg-white/6 hover:scale-[1.02] cursor-pointer' : 'opacity-80 cursor-default'}`}
       onClick={item.live ? onOpen : undefined}
       style={{ borderTop: `2px solid ${item.accent}40` }}
     >
@@ -327,7 +327,7 @@ export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan }
               <button
                 key={i}
                 onClick={() => setOpenPaper(p)}
-                className="glass rounded-2xl p-6 flex flex-col gap-3 hover:bg-white/6 transition-all group text-left w-full"
+                className="glass rounded-2xl p-6 flex flex-col gap-3 hover:bg-white/6 hover:scale-[1.02] transition-all group text-left w-full"
                 style={{ borderTop: `2px solid ${p.color}40` }}
               >
                 <div className="flex items-start justify-between gap-2">
