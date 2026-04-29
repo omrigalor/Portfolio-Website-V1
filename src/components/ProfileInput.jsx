@@ -190,6 +190,16 @@ export default function ProfileInput({ onExit, hideBack = false }) {
   const [result, setResult] = useState(null);
   const [showCalc, setShowCalc] = useState(false);
   const [calcStep, setCalcStep] = useState(0);
+  const resultsRef = useRef(null);
+
+  // Scroll to results whenever overlay closes (showCalc goes false while result exists)
+  useEffect(() => {
+    if (showCalc || !result) return;
+    const t = setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 250);
+    return () => clearTimeout(t);
+  }, [showCalc, result]);
 
   const ancestriesA = [personA.country1, personA.country2].filter(Boolean);
   const ancestriesB = [personB.country1, personB.country2].filter(Boolean);
@@ -210,17 +220,11 @@ export default function ProfileInput({ onExit, hideBack = false }) {
     [100, 600, 1100, 1600, 2100, 2600].forEach((delay, i) => {
       setTimeout(() => setCalcStep(i + 1), delay);
     });
-    // Auto-dismiss after animation completes
-    setTimeout(() => {
-      setShowCalc(false);
-      setTimeout(() => document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' }), 200);
-    }, 3300);
+    // Auto-dismiss after animation completes (scroll handled by effect)
+    setTimeout(() => setShowCalc(false), 3300);
   };
 
-  const dismissCalc = () => {
-    setShowCalc(false);
-    setTimeout(() => document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
-  };
+  const dismissCalc = () => setShowCalc(false);
 
   const isValid = personA.country1 && personB.country1;
 
@@ -282,7 +286,7 @@ export default function ProfileInput({ onExit, hideBack = false }) {
         )}
 
         {result && (
-          <div id="results-section" className="animate-fade-in-up">
+          <div ref={resultsRef} id="results-section" className="animate-fade-in-up">
             <div className="flex items-center gap-3 mb-6">
               <div className="h-px flex-1 bg-white/5" />
               <h2 className="text-sm font-semibold text-white/50 uppercase tracking-widest px-4">Compatibility Results</h2>

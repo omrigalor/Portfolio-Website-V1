@@ -75,58 +75,60 @@ export default function ResultsDashboard({ result, personA, personB, animated = 
         </div>
       </div>
 
-      {/* ── 2. Child Well-Being Breakdown (near top) ── */}
-      <div className="glass rounded-2xl p-6 space-y-5" style={{ borderTop: '2px solid rgba(212,175,55,0.35)' }}>
-        <div>
-          <h3 className="text-base font-semibold text-white">Child Well-Being</h3>
-          <p className="text-xs text-white/50 mt-0.5">Predicted outcomes for prospective children · ACS 5yr + NLSY79 data (n=5.3M)</p>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { label: 'Economic Prosperity', score: child.prosperity, color: '#D4AF37', note: 'Peaks at ψ*=0.208' },
-            { label: 'Educational Attainment', score: child.education, color: '#60a5fa', note: 'Peaks at ψ*=0.189' },
-            { label: 'Creativity', score: child.creativity, color: '#a78bfa', note: 'Peaks at ψ*=0.205' },
-            { label: 'Focus', score: child.focus, color: '#34d399', note: 'Linear — lower ψ better' },
-          ].map(d => (
-            <div key={d.label} className="glass rounded-xl p-4 text-center space-y-2">
-              <p className="text-3xl font-bold font-mono" style={{ color: d.color }}>{d.score}</p>
-              <div className="h-1.5 bg-white/8 rounded-full overflow-hidden">
-                <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${d.score}%`, background: d.color }} />
-              </div>
-              <p className="text-xs font-medium text-white/65">{d.label}</p>
-              <p className="text-xs text-white/30">{d.note}</p>
-            </div>
-          ))}
-        </div>
-        <InsightCard title="Child Outlook" accent="gold">
-          Children from {personA?.name ?? 'Person A'} × {personB?.name ?? 'Person B'}'s cultural pairing show {child.creativity >= 75 ? 'strong' : 'moderate'} creative potential and {child.focus >= 75 ? 'high' : 'moderate'} focus. An intermediate cultural mix delivers the strongest cognitive and economic outcomes.
-        </InsightCard>
-      </div>
+      {/* ── 2 & 3. Child Well-Being + Relationship Compatibility (side by side) ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-      {/* ── 3. Relationship Compatibility Factors ── */}
-      <div className="glass rounded-2xl p-6 space-y-5" style={{ borderTop: '2px solid rgba(196,30,58,0.3)' }}>
-        <div>
-          <h3 className="text-base font-semibold text-white">Relationship Compatibility Factors</h3>
-          <p className="text-xs text-white/50 mt-0.5">Fixed effects from the CPS separation regression — each factor's individual contribution to stability</p>
-        </div>
-        <div className="space-y-5">
-          {[
-            { label: 'Age Compatibility', score: ageScore, color: '#fb923c', note: 'Based on HDFE age fixed effects from predictions.dta — younger couples average higher separation risk' },
-            { label: 'Religious Alignment', score: religiousScore, color: '#f472b6', note: 'Same-religion couples are meaningfully more stable — religion-pair FEs from CPS micro-data' },
-            { label: 'Education Alignment', score: eduScore, color: '#34d399', note: 'Higher education levels correlate with lower separation rates; computed from education FEs' },
-          ].map(d => (
-            <div key={d.label}>
-              <div className="flex justify-between text-xs mb-1.5">
-                <span className="text-white/75 font-medium">{d.label}</span>
-                <span className="font-mono text-white font-bold">{d.score} <span className="text-white/30 font-normal">/ 100</span></span>
+        {/* Child Well-Being */}
+        <div className="glass rounded-2xl p-6 space-y-4" style={{ borderTop: '2px solid rgba(212,175,55,0.35)' }}>
+          <div>
+            <h3 className="text-base font-semibold text-white">Child Well-Being</h3>
+            <p className="text-xs text-white/50 mt-0.5">Predicted outcomes for prospective children · ACS 5yr + NLSY79 (n=5.3M)</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: 'Economic Prosperity', score: child.prosperity, color: '#D4AF37', note: 'ψ*=0.208' },
+              { label: 'Educational Attainment', score: child.education, color: '#60a5fa', note: 'ψ*=0.189' },
+              { label: 'Creativity', score: child.creativity, color: '#a78bfa', note: 'ψ*=0.205' },
+              { label: 'Focus', score: child.focus, color: '#34d399', note: 'Linear' },
+            ].map(d => (
+              <div key={d.label} className="glass rounded-xl p-3 text-center space-y-1.5">
+                <p className="text-2xl font-bold font-mono" style={{ color: d.color }}>{d.score}</p>
+                <div className="h-1.5 bg-white/8 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${d.score}%`, background: d.color }} />
+                </div>
+                <p className="text-xs font-medium text-white/60 leading-tight">{d.label}</p>
+                <p className="text-xs text-white/28">{d.note}</p>
               </div>
-              <div className="h-2.5 bg-white/8 rounded-full overflow-hidden">
-                <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${d.score}%`, background: d.color }} />
-              </div>
-              <p className="text-xs text-white/35 mt-1">{d.note}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
+
+        {/* Relationship Compatibility Factors */}
+        <div className="glass rounded-2xl p-6 space-y-4" style={{ borderTop: '2px solid rgba(196,30,58,0.3)' }}>
+          <div>
+            <h3 className="text-base font-semibold text-white">Relationship Factors</h3>
+            <p className="text-xs text-white/50 mt-0.5">Fixed effects from CPS separation regression — each factor's contribution to stability</p>
+          </div>
+          <div className="space-y-5">
+            {[
+              { label: 'Age Compatibility', score: ageScore, color: '#fb923c', note: 'From HDFE age FEs — younger couples average higher separation risk' },
+              { label: 'Religious Alignment', score: religiousScore, color: '#f472b6', note: 'Same-religion couples are meaningfully more stable (religion-pair FEs, CPS)' },
+              { label: 'Education Alignment', score: eduScore, color: '#34d399', note: 'Higher education correlates with lower separation rates (education FEs)' },
+            ].map(d => (
+              <div key={d.label}>
+                <div className="flex justify-between text-xs mb-1.5">
+                  <span className="text-white/75 font-medium">{d.label}</span>
+                  <span className="font-mono text-white font-bold">{d.score}<span className="text-white/30 font-normal">/100</span></span>
+                </div>
+                <div className="h-2 bg-white/8 rounded-full overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${d.score}%`, background: d.color }} />
+                </div>
+                <p className="text-xs text-white/35 mt-1">{d.note}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
 
       {/* ── 4. Cultural distance meter ── */}

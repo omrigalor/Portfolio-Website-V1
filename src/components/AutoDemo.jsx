@@ -117,6 +117,8 @@ export default function AutoDemo({ onExit, hideBack = false }) {
   const [demoStep, setDemoStep] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const timersRef = useRef([]);
+  const profilesEndRef = useRef(null);
+  const resultsRef = useRef(null);
 
   const result = computeFullScore({
     ancestriesA: DEMO_PERSON_A.ancestries,
@@ -136,6 +138,22 @@ export default function AutoDemo({ onExit, hideBack = false }) {
     timersRef.current.push(resultsTimer);
     return () => timersRef.current.forEach(clearTimeout);
   }, []);
+
+  // Scroll to bottom of profiles when B starts loading
+  useEffect(() => {
+    if (demoStep === 6) {
+      profilesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }, [demoStep]);
+
+  // Scroll to results after overlay clears
+  useEffect(() => {
+    if (!showResults) return;
+    const t = setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 500);
+    return () => clearTimeout(t);
+  }, [showResults]);
 
   // Map demoStep → calculation engine reveal step
   const calcReveal =
@@ -215,6 +233,7 @@ export default function AutoDemo({ onExit, hideBack = false }) {
           {demoStep >= 1 && (
             <ProfileCard person={DEMO_PERSON_B} fieldsVisible={bFields} side="B" pulse={false} />
           )}
+          <div ref={profilesEndRef} />
         </div>
 
         {/* Calculation overlay — appears while computing, auto-dismissed at showResults */}
@@ -251,7 +270,7 @@ export default function AutoDemo({ onExit, hideBack = false }) {
 
         {/* Full results dashboard */}
         {showResults && (
-          <div className="animate-fade-in-up">
+          <div ref={resultsRef} className="animate-fade-in-up">
             <div className="flex items-center gap-3 mb-6">
               <div className="h-px flex-1 bg-white/5" />
               <h2 className="text-sm font-semibold text-white/70 uppercase tracking-widest px-4">Full Results Dashboard</h2>
