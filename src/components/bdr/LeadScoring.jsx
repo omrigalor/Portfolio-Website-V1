@@ -1,354 +1,324 @@
-import { useEffect, useState, useCallback } from 'react';
-import { api, streamAI } from '../../lib/bdrApi';
-import { tierLabel, tierClass, sourceLabel, statusLabel, fmtEur, fmtPct, scoreColor } from '../../lib/bdrUtils';
+import { useEffect, useState } from 'react';
+import { RadarChart, PolarGrid, PolarAngleAxis, Radar, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
+import { api, streamAI, researchCompany } from '../../lib/bdrApi';
+import { singleLeadMonteCarlo, fmtEur } from '../../lib/monteCarlo';
 import { toast } from './Toast';
 
-const FACTORS = [
-  { key:'industry_fit',       label:'Industry Fit',            weight:0.15, guidance:['No fit','Low fit','Possible fit','Good fit (fintech/health/legal)','Perfect fit — core vertical'] },
-  { key:'technical_ready',    label:'Technical Readiness',     weight:0.12, guidance:['No eng team','Basic IT only','Some API experience','API team, some ML','Strong eng, ML pipeline'] },
-  { key:'usecase_clarity',    label:'Use Case Clarity',        weight:0.14, guidance:['"We want AI"','Vague idea','Rough use case','Specific workflow','Exact spec with success metrics'] },
-  { key:'budget',             label:'Budget Identified',       weight:0.10, guidance:['No budget','Exploratory only','Some discretionary','Budget allocated','Signed-off, CFO approved'] },
-  { key:'compelling_event',   label:'Compelling Event',        weight:0.13, guidance:['None','Mild interest','Soft deadline','Hard deadline/funding','Board mandate or competitor deployed'] },
-  { key:'decision_access',    label:'Decision-Maker Access',   weight:0.08, guidance:['Gatekeeper only','Individual contributor','Manager-level','Director/VP','C-suite direct'] },
-  { key:'compliance_ready',   label:'Compliance Readiness',    weight:0.08, guidance:['No awareness','Basic awareness','Some research done','DPA considered','GDPR/DPA process defined'] },
-  { key:'company_scale',      label:'Company Scale',           weight:0.05, guidance:['<50 employees','50–200','200–1000','1000–10k','10k+ employees'] },
-  { key:'engagement',         label:'Engagement Level',        weight:0.07, guidance:['No response','One reply','2–3 touches','Active multi-touch','Highly engaged, asks tech Qs'] },
-  { key:'competitive_displace',label:'Competitive Displacement',weight:0.08, guidance:['Happy with status quo','No AI yet','Greenfield','Has competitor with pain','Active migration, committed'] },
-];
+const ACCENT = '#FFA040';
+const TIER_COLOR = { 'Tier 1':'#4ade80', 'Tier 2':'#fb923c', 'Tier 3':'#94a3b8' };
+const STATUS_OPTS = ['new','qualifying','qualified','handed_off','nurture','archived'];
 
-const INDUSTRIES = ['Fintech','Finance','Insurance','Healthcare','Legal','E-commerce','Logistics/Tech','Telco','Media/Tech','Payments','SaaS','Other'];
-const COUNTRIES = ['UK','Germany','France','Sweden','Netherlands','Ireland','Switzerland','Spain','Italy','Poland','Denmark','Norway','Other'];
-const SOURCES = ['inbound_web','inbound_referral','inbound_event','outbound_cold','outbound_sequence','partner'];
+const MCTip = ({ active, payload }) => active && payload?.length ? (
+  <div style={{ background:'rgba(10,10,20,0.95)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:6, padding:'6px 10px', fontSize:11 }}>
+    <p style={{ color: ACCENT }}>~€{payload[0]?.payload?.x}K · {payload[0]?.value} outcomes</p>
+  </div>
+) : null;
 
-function ScoreSlider({ factor, value, onChange }) {
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between text-xs">
-        <span className="text-white/70 font-medium">{factor.label}</span>
-        <span className="font-mono font-bold" style={{ color: scoreColor(value * 20) }}>{value}/5</span>
-      </div>
-      <input type="range" min="1" max="5" step="1" value={value}
-        onChange={e => onChange(parseInt(e.target.value))}
-        className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
-        style={{ background: `linear-gradient(to right, ${scoreColor(value*20)} ${(value-1)/4*100}%, rgba(255,255,255,0.1) ${(value-1)/4*100}%)` }} />
-      <p className="text-xs text-white/35 italic">{factor.guidance[value-1]}</p>
-    </div>
-  );
+function buildRadarData(lead) {
+  return [
+    { subject:'AI Readiness',    value:(lead.ai_readiness_score||3)*20 },
+    { subject:'Use Case Fit',    value:(lead.use_case_fit_score||3)*20 },
+    { subject:'Compliance Edge', value:(lead.compliance_sensitivity_score||3)*20 },
+    { subject:'Timing',          value:Math.min(100,((lead.compelling_events?.length||0)*34))||40 },
+    { subject:'Entry Access',    value:lead.entry_point_title?80:40 },
+  ];
 }
 
-function TierBadge({ tier }) {
-  return <span className={`px-2 py-0.5 rounded text-xs font-semibold ${tierClass(tier)}`}>{tierLabel(tier)}</span>;
+function inferProducts(lead) {
+  const cases = lead.use_case_fit_top_cases || [];
+  const products = new Set(lead.recommended_products || []);
+  if (cases.some(c => /code|engineer|developer|documentation/i.test(c))) products.add('Claude Code');
+  if (cases.some(c => /support|customer|chat/i.test(c))) products.add('Claude API (high-volume messaging)');
+  if (cases.some(c => /compliance|audit|regulatory|legal/i.test(c))) products.add('Claude Enterprise (audit logs + DPA)');
+  if (cases.some(c => /document|batch|process|summar/i.test(c))) products.add('Claude API + Batch Processing');
+  return [...products].slice(0, 4);
 }
 
-function LeadRow({ lead, onSelect, selected }) {
-  return (
-    <tr className={`table-row cursor-pointer ${selected ? 'bg-orange-400/5' : ''}`} onClick={() => onSelect(lead)}>
-      <td className="py-2.5 px-4">
-        <p className="text-sm text-white font-medium">{lead.company}</p>
-        <p className="text-xs text-white/40">{lead.contact_name} · {lead.country}</p>
-      </td>
-      <td className="py-2.5 px-4"><TierBadge tier={lead.tier} /></td>
-      <td className="py-2.5 px-4">
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-sm font-bold" style={{ color: scoreColor(lead.composite_score) }}>{Math.round(lead.composite_score)}</span>
-          <div className="flex-1 score-bar-track w-16">
-            <div className="h-full rounded-full" style={{ width:`${lead.composite_score}%`, background: scoreColor(lead.composite_score) }} />
-          </div>
-        </div>
-      </td>
-      <td className="py-2.5 px-4 text-xs text-white/60">{lead.industry}</td>
-      <td className="py-2.5 px-4 text-xs text-white/60">{sourceLabel(lead.source)}</td>
-      <td className="py-2.5 px-4 text-xs font-mono" style={{ color: '#60a5fa' }}>{fmtPct(lead.conversion_probability)}</td>
-      <td className="py-2.5 px-4 text-xs text-white/60">{fmtEur(lead.expected_acv)}</td>
-      <td className="py-2.5 px-4">
-        <span className="text-xs text-white/40 bg-white/5 px-2 py-0.5 rounded">{statusLabel(lead.status)}</span>
-      </td>
-    </tr>
-  );
-}
+export default function LeadIntelligence({ initialId }) {
+  const [leads, setLeads]         = useState([]);
+  const [selected, setSelected]   = useState(null);
+  const [researching, setRes]     = useState(false);
+  const [query, setQuery]         = useState('');
+  const [filter, setFilter]       = useState('');
+  const [handoff, setHandoff]     = useState('');
+  const [genHandoff, setGenH]     = useState(false);
+  const [mc, setMC]               = useState(null);
+  const [editNotes, setEditNotes] = useState('');
+  const [saving, setSaving]       = useState(false);
+  const [activeTab, setActiveTab] = useState('brief');
 
-const emptyLead = () => ({
-  company:'', country:'UK', industry:'Fintech', employees:'', source:'inbound_web',
-  contact_name:'', contact_title:'', date_added:'',
-  score_industry_fit:3, score_technical_ready:3, score_usecase_clarity:3, score_budget:3,
-  score_compelling_event:3, score_decision_access:3, score_compliance_ready:3,
-  score_company_scale:3, score_engagement:3, score_competitive_displace:3,
-  use_case_description:'', competitive_landscape:'', compliance_context:'', technical_environment:'', next_steps:'',
-  status:'new',
-});
-
-export default function LeadScoring({ initialId }) {
-  const [leads, setLeads] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [editing, setEditing] = useState(null);
-  const [isNew, setIsNew] = useState(false);
-  const [filter, setFilter] = useState({ tier:'', source:'', q:'' });
-  const [narrative, setNarrative] = useState('');
-  const [genNarr, setGenNarr] = useState(false);
-  const [handoff, setHandoff] = useState('');
-  const [genHandoff, setGenHandoff] = useState(false);
-
-  const load = useCallback(() => api.leads.list().then(setLeads), []);
-  useEffect(() => { load(); }, []);
   useEffect(() => {
-    if (initialId && leads.length) {
-      const l = leads.find(x => x.id === initialId);
-      if (l) setSelected(l);
-    }
-  }, [initialId, leads]);
-
-  // Live score preview while editing
-  function liveScore(e) {
-    if (!e) return null;
-    let weighted = 0, maxW = 0;
-    for (const f of FACTORS) {
-      const s = e[`score_${f.key}`] ?? 3;
-      weighted += s * f.weight;
-      maxW += 5 * f.weight;
-    }
-    return Math.round((weighted/maxW)*1000)/10;
-  }
-
-  async function save() {
-    if (!editing.company) return toast('Company name required', 'error');
-    try {
-      if (isNew) {
-        const created = await api.leads.create(editing);
-        await load();
-        setSelected(created);
-      } else {
-        const updated = await api.leads.update(selected.id, editing);
-        await load();
-        setSelected(updated);
+    api.leads.list().then(ls => {
+      setLeads(ls);
+      if (initialId) {
+        const found = ls.find(l => l.id === initialId);
+        if (found) selectLead(found);
       }
-      setEditing(null);
-      setIsNew(false);
-      toast('Lead saved');
-    } catch { toast('Save failed', 'error'); }
+    });
+  }, [initialId]);
+
+  function selectLead(lead) {
+    setSelected(lead); setHandoff(''); setEditNotes(lead.notes || ''); setActiveTab('brief');
+    if (lead.expected_acv && lead.conversion_probability) setMC(singleLeadMonteCarlo(lead));
   }
 
-  async function genNarrative() {
-    if (!selected) return;
-    setGenNarr(true); setNarrative('');
+  async function handleResearch() {
+    if (!query.trim()) return;
+    setRes(true);
     try {
-      const r = await fetch(`/api/ai/score-narrative/${selected.id}`, { method:'POST' });
-      const d = await r.json();
-      setNarrative(d.narrative);
-    } catch { toast('AI unavailable — check ANTHROPIC_API_KEY', 'error'); }
-    setGenNarr(false);
+      const data = await researchCompany(query.trim());
+      const lead = await api.leads.create(data);
+      const fresh = await api.leads.list();
+      setLeads(fresh); selectLead(lead); setQuery('');
+      toast(`${lead.company} researched and added`);
+    } catch (e) {
+      toast('Research failed', 'error');
+    } finally { setRes(false); }
   }
 
-  async function genHandoffBrief() {
+  async function generateHandoff() {
     if (!selected) return;
-    setGenHandoff(true); setHandoff('');
+    setGenH(true); setHandoff(''); setActiveTab('brief');
     await streamAI(`/ai/handoff/${selected.id}`, {}, chunk => setHandoff(p => p + chunk));
-    setGenHandoff(false);
+    setGenH(false);
   }
 
-  const filtered = leads.filter(l => {
-    if (filter.tier && l.tier !== filter.tier) return false;
-    if (filter.source && l.source !== filter.source) return false;
-    if (filter.q && !l.company.toLowerCase().includes(filter.q.toLowerCase()) && !l.contact_name?.toLowerCase().includes(filter.q.toLowerCase())) return false;
-    return true;
-  });
+  async function saveEdits(patch) {
+    if (!selected) return;
+    setSaving(true);
+    const updated = await api.leads.update(selected.id, patch);
+    setSelected(updated);
+    setLeads(await api.leads.list());
+    setSaving(false);
+    toast('Saved');
+  }
 
-  const ls = liveScore(editing);
+  async function deleteLead() {
+    if (!selected || !confirm(`Delete ${selected.company}?`)) return;
+    await api.leads.delete(selected.id);
+    setSelected(null); setLeads(await api.leads.list()); toast('Deleted');
+  }
+
+  const filtered = leads.filter(l => !filter || l.company.toLowerCase().includes(filter.toLowerCase()) || l.industry?.toLowerCase().includes(filter.toLowerCase()));
 
   return (
     <div className="flex h-full overflow-hidden">
-      {/* Lead list */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="p-4 border-b border-white/8 flex items-center gap-3">
-          <input className="bdr-input max-w-xs" placeholder="Search company or contact…" value={filter.q} onChange={e => setFilter(p=>({...p,q:e.target.value}))} />
-          <select className="bdr-input w-auto" value={filter.tier} onChange={e => setFilter(p=>({...p,tier:e.target.value}))}>
-            <option value="">All Tiers</option>
-            <option value="tier_1_hot">Tier 1 — Hot</option>
-            <option value="tier_2_warm">Tier 2 — Warm</option>
-            <option value="tier_3_nurture">Tier 3 — Nurture</option>
-            <option value="tier_4_archive">Tier 4 — Archive</option>
-          </select>
-          <select className="bdr-input w-auto" value={filter.source} onChange={e => setFilter(p=>({...p,source:e.target.value}))}>
-            <option value="">All Sources</option>
-            {SOURCES.map(s => <option key={s} value={s}>{sourceLabel(s)}</option>)}
-          </select>
-          <div className="ml-auto flex gap-2">
-            <span className="text-xs text-white/30">{filtered.length} leads</span>
-            <button className="bdr-btn bdr-btn-primary" onClick={() => { setEditing(emptyLead()); setIsNew(true); setSelected(null); }}>+ New Lead</button>
+      <div className="w-72 border-r border-white/8 flex flex-col flex-shrink-0">
+        <div className="p-4 border-b border-white/8 space-y-3">
+          <p className="text-xs text-white/40 uppercase tracking-wider">AI Auto-Research</p>
+          <div className="flex gap-2">
+            <input className="input-field flex-1 text-sm" placeholder="Company name…"
+              value={query} onChange={e => setQuery(e.target.value)}
+              onKeyDown={e => e.key==='Enter' && handleResearch()} />
+            <button className="btn-primary text-sm px-3" onClick={handleResearch} disabled={researching||!query.trim()}>
+              {researching ? '⟳' : '✦'}
+            </button>
           </div>
+          {researching && <p className="text-xs text-white/40 animate-pulse">Researching {query}…</p>}
+          <input className="input-field text-xs" placeholder="Filter leads…" value={filter} onChange={e => setFilter(e.target.value)} />
         </div>
-
-        <div className="overflow-auto flex-1">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-white/8">
-                {['Company','Tier','Score','Industry','Source','Conv. Prob','Exp. ACV','Status'].map(h => (
-                  <th key={h} className="py-2.5 px-4 text-xs text-white/30 font-medium uppercase tracking-wider">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(l => <LeadRow key={l.id} lead={l} onSelect={l => { setSelected(l); setEditing(null); setNarrative(''); setHandoff(''); }} selected={selected?.id === l.id} />)}
-            </tbody>
-          </table>
+        <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          {filtered.map(l => (
+            <button key={l.id} onClick={() => selectLead(l)}
+              className={`w-full text-left px-3 py-3 rounded-xl transition-all ${selected?.id===l.id?'glass-strong':'hover:bg-white/4'}`}
+              style={{ borderLeft: selected?.id===l.id?`2px solid ${TIER_COLOR[l.tier]||'#94a3b8'}`:'2px solid transparent' }}>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-medium text-white truncate">{l.company}</p>
+                <span className="text-xs font-bold font-mono shrink-0" style={{ color:TIER_COLOR[l.tier]||'#94a3b8' }}>{l.overall_score}</span>
+              </div>
+              <p className="text-xs text-white/35 mt-0.5">{l.industry} · {l.country}</p>
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Right panel */}
-      {(selected || editing) && (
-        <div className="w-96 border-l border-white/8 overflow-y-auto flex-shrink-0">
-          {editing ? (
-            /* Edit form */
-            <div className="p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="font-semibold text-white">{isNew ? 'New Lead' : `Edit — ${selected?.company}`}</p>
-                <button className="text-white/30 hover:text-white/70 text-xs" onClick={() => { setEditing(null); setIsNew(false); }}>✕</button>
-              </div>
-
-              {/* Live score preview */}
-              <div className="glass rounded-lg p-3 text-center">
-                <p className="text-xs text-white/40 mb-1">Live Score Preview</p>
-                <p className="text-3xl font-bold font-mono" style={{ color: scoreColor(ls||0) }}>{ls || 0}</p>
-                <p className="text-xs text-white/30">/ 100</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div><label className="text-xs text-white/40">Company *</label><input className="bdr-input mt-1" value={editing.company} onChange={e => setEditing(p=>({...p,company:e.target.value}))} /></div>
-                <div><label className="text-xs text-white/40">Country</label>
-                  <select className="bdr-input mt-1" value={editing.country} onChange={e => setEditing(p=>({...p,country:e.target.value}))}>
-                    {COUNTRIES.map(c => <option key={c}>{c}</option>)}
-                  </select>
+      {selected ? (
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6 space-y-6 max-w-3xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-3 mb-1">
+                  <h2 className="text-2xl font-bold text-white">{selected.company}</h2>
+                  <span className="text-sm px-2 py-0.5 rounded font-semibold" style={{ background:(TIER_COLOR[selected.tier]||'#94a3b8')+'18', color:TIER_COLOR[selected.tier]||'#94a3b8' }}>{selected.tier}</span>
+                  <span className="text-2xl font-bold font-mono" style={{ color:TIER_COLOR[selected.tier]||'#94a3b8' }}>{selected.overall_score}</span>
                 </div>
-                <div><label className="text-xs text-white/40">Industry</label>
-                  <select className="bdr-input mt-1" value={editing.industry} onChange={e => setEditing(p=>({...p,industry:e.target.value}))}>
-                    {INDUSTRIES.map(i => <option key={i}>{i}</option>)}
-                  </select>
-                </div>
-                <div><label className="text-xs text-white/40">Employees</label><input type="number" className="bdr-input mt-1" value={editing.employees} onChange={e => setEditing(p=>({...p,employees:parseInt(e.target.value)||0}))} /></div>
-                <div><label className="text-xs text-white/40">Contact Name</label><input className="bdr-input mt-1" value={editing.contact_name} onChange={e => setEditing(p=>({...p,contact_name:e.target.value}))} /></div>
-                <div><label className="text-xs text-white/40">Contact Title</label><input className="bdr-input mt-1" value={editing.contact_title} onChange={e => setEditing(p=>({...p,contact_title:e.target.value}))} /></div>
-                <div><label className="text-xs text-white/40">Source</label>
-                  <select className="bdr-input mt-1" value={editing.source} onChange={e => setEditing(p=>({...p,source:e.target.value}))}>
-                    {SOURCES.map(s => <option key={s} value={s}>{sourceLabel(s)}</option>)}
-                  </select>
-                </div>
-                <div><label className="text-xs text-white/40">Status</label>
-                  <select className="bdr-input mt-1" value={editing.status} onChange={e => setEditing(p=>({...p,status:e.target.value}))}>
-                    {['new','qualifying','qualified','handed_off','nurture','archived'].map(s => <option key={s} value={s}>{statusLabel(s)}</option>)}
-                  </select>
-                </div>
+                <p className="text-sm text-white/45">{selected.industry} · {selected.country} · {selected.employee_count_estimate?.toLocaleString()} employees</p>
               </div>
-
-              <div className="border-t border-white/8 pt-4 space-y-4">
-                <p className="text-xs text-white/40 uppercase tracking-wider">Scoring Factors</p>
-                {FACTORS.map(f => (
-                  <ScoreSlider key={f.key} factor={f} value={editing[`score_${f.key}`] ?? 3}
-                    onChange={v => setEditing(p => ({ ...p, [`score_${f.key}`]: v }))} />
-                ))}
-              </div>
-
-              <div className="border-t border-white/8 pt-4 space-y-3">
-                <p className="text-xs text-white/40 uppercase tracking-wider">Qualification Notes</p>
-                {[['use_case_description','Use Case (specific)'],['competitive_landscape','Competitive Landscape'],['compliance_context','Compliance Context'],['next_steps','Next Steps']].map(([k,l]) => (
-                  <div key={k}><label className="text-xs text-white/40">{l}</label>
-                    <textarea className="bdr-input mt-1" rows={2} value={editing[k]||''} onChange={e => setEditing(p=>({...p,[k]:e.target.value}))} />
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <button className="bdr-btn bdr-btn-primary flex-1" onClick={save}>Save Lead</button>
-                <button className="bdr-btn bdr-btn-secondary" onClick={() => { setEditing(null); setIsNew(false); }}>Cancel</button>
+              <div className="flex items-center gap-2 shrink-0">
+                <select className="input-field text-xs py-1.5 w-32" value={selected.status} onChange={e => saveEdits({ status:e.target.value })}>
+                  {STATUS_OPTS.map(s => <option key={s} value={s}>{s.replace('_',' ')}</option>)}
+                </select>
+                <button onClick={deleteLead} className="btn-secondary text-xs py-1.5 px-2 text-white/30 hover:text-red-400">✕</button>
               </div>
             </div>
-          ) : selected ? (
-            /* Detail view */
-            <div className="p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-bold text-white text-lg">{selected.company}</p>
-                  <p className="text-xs text-white/40">{selected.id} · {selected.country} · {selected.industry}</p>
-                </div>
-                <button className="bdr-btn bdr-btn-secondary text-xs" onClick={() => setEditing({...selected})}>Edit</button>
-              </div>
 
-              {/* Score + tier */}
-              <div className="glass rounded-xl p-4 flex items-center gap-4">
-                <div className="text-center">
-                  <p className="text-4xl font-bold font-mono" style={{ color: scoreColor(selected.composite_score) }}>{Math.round(selected.composite_score)}</p>
-                  <p className="text-xs text-white/30">/ 100</p>
-                </div>
-                <div className="flex-1 space-y-2">
-                  <TierBadge tier={selected.tier} />
-                  <p className="text-xs text-white/50">Conv. prob: <span className="font-mono text-blue-400">{fmtPct(selected.conversion_probability)}</span></p>
-                  <p className="text-xs text-white/50">Exp. ACV: <span className="font-mono text-orange-400">{fmtEur(selected.expected_acv)}</span></p>
-                  <p className="text-xs text-white/50">Route: <span className="text-white/70">{selected.route_to?.replace('_',' ')}</span></p>
-                </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="glass rounded-2xl p-5">
+                <p className="text-xs text-white/40 uppercase tracking-wider mb-3">Score Dimensions</p>
+                <ResponsiveContainer width="100%" height={180}>
+                  <RadarChart data={buildRadarData(selected)}>
+                    <PolarGrid stroke="rgba(255,255,255,0.07)" />
+                    <PolarAngleAxis dataKey="subject" tick={{ fill:'rgba(255,255,255,0.4)', fontSize:10 }} />
+                    <Radar dataKey="value" fill={ACCENT} fillOpacity={0.15} stroke={ACCENT} strokeWidth={1.5} />
+                  </RadarChart>
+                </ResponsiveContainer>
               </div>
-
-              {/* Factor breakdown */}
-              <div className="space-y-2">
-                <p className="text-xs text-white/40 uppercase tracking-wider">Factor Breakdown</p>
-                {FACTORS.map(f => (
-                  <div key={f.key} className="flex items-center gap-2">
-                    <span className="text-xs text-white/50 w-36 truncate">{f.label}</span>
-                    <div className="flex-1 score-bar-track">
-                      <div className="h-full rounded-full" style={{ width:`${(selected[`score_${f.key}`]||3)/5*100}%`, background: scoreColor((selected[`score_${f.key}`]||3)*20) }} />
-                    </div>
-                    <span className="text-xs font-mono text-white/60">{selected[`score_${f.key}`]||3}/5</span>
-                  </div>
+              <div className="glass rounded-2xl p-5 space-y-3">
+                <p className="text-xs text-white/40 uppercase tracking-wider">Key Facts</p>
+                {[
+                  ['Entry Point', selected.entry_point_title||'—'],
+                  ['Contact', selected.contact_name?`${selected.contact_name} · ${selected.contact_title}`:'—'],
+                  ['Expected ACV', fmtEur(selected.expected_acv)],
+                  ['Conversion', `${Math.round((selected.conversion_probability||0)*100)}%`],
+                ].map(([label, value]) => (
+                  <div key={label}><p className="text-xs text-white/30">{label}</p><p className="text-sm text-white/80">{value}</p></div>
                 ))}
               </div>
+            </div>
 
-              {/* AI Narrative */}
-              <div className="border-t border-white/8 pt-4">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs text-white/40 uppercase tracking-wider">AI Score Narrative</p>
-                  <button className="bdr-btn bdr-btn-secondary text-xs py-1 px-2" onClick={genNarrative} disabled={genNarr}>
-                    {genNarr ? '⟳' : '✦ Explain'}
-                  </button>
-                </div>
-                {narrative && <p className="text-sm text-white/70 leading-relaxed">{narrative}</p>}
-              </div>
+            <div className="border-b border-white/8 flex gap-6">
+              {[['brief','Intelligence Brief'],['battlecard','Battlecard'],['monte_carlo','Monte Carlo']].map(([id, label]) => (
+                <button key={id} onClick={() => setActiveTab(id)}
+                  className="text-sm pb-3 transition-colors border-b-2"
+                  style={{ color:activeTab===id?'white':'rgba(255,255,255,0.35)', borderColor:activeTab===id?ACCENT:'transparent' }}>
+                  {label}
+                </button>
+              ))}
+            </div>
 
-              {/* Use case + notes */}
-              {selected.use_case_description && (
-                <div className="border-t border-white/8 pt-3">
-                  <p className="text-xs text-white/40 mb-1">Use Case</p>
-                  <p className="text-sm text-white/70 leading-relaxed">{selected.use_case_description}</p>
+            {activeTab === 'brief' && (
+              <div className="space-y-5">
+                <p className="text-sm text-white/70 leading-relaxed">{selected.company_overview}</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="glass rounded-xl p-4 space-y-2">
+                    <p className="text-xs text-white/40 uppercase tracking-wider">Top Use Cases</p>
+                    {(selected.use_case_fit_top_cases||[]).map((c,i) => (
+                      <div key={i} className="flex items-center gap-2 text-sm text-white/70">
+                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background:ACCENT }} />{c}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="glass rounded-xl p-4 space-y-2">
+                    <p className="text-xs text-white/40 uppercase tracking-wider">Compelling Events</p>
+                    {(selected.compelling_events||[]).map((e,i) => (
+                      <div key={i} className="flex items-start gap-2 text-sm text-white/70">
+                        <span className="text-green-400 mt-0.5 shrink-0">⚡</span>{e}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              )}
-              {selected.competitive_landscape && (
-                <div>
-                  <p className="text-xs text-white/40 mb-1">Competitive Landscape</p>
-                  <p className="text-sm text-white/70 leading-relaxed">{selected.competitive_landscape}</p>
+                <div className="glass rounded-xl p-4 space-y-2">
+                  <p className="text-xs text-white/40 uppercase tracking-wider">Recommended Claude Products</p>
+                  <div className="flex flex-wrap gap-2">
+                    {inferProducts(selected).map(p => (
+                      <span key={p} className="text-xs px-2.5 py-1 rounded-full border" style={{ borderColor:'rgba(255,160,64,0.3)', color:ACCENT, background:'rgba(255,160,64,0.08)' }}>{p}</span>
+                    ))}
+                  </div>
                 </div>
-              )}
-
-              {/* Handoff brief */}
-              {(selected.tier === 'tier_1_hot' || selected.tier === 'tier_2_warm') && (
-                <div className="border-t border-white/8 pt-4">
-                  <div className="flex items-center justify-between mb-2">
+                <div className="glass rounded-xl p-4">
+                  <p className="text-xs text-white/40 uppercase tracking-wider mb-2">Messaging Angle</p>
+                  <p className="text-sm text-white/75 leading-relaxed italic">"{selected.messaging_angle}"</p>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
                     <p className="text-xs text-white/40 uppercase tracking-wider">AE Handoff Brief</p>
-                    <button className="bdr-btn bdr-btn-primary text-xs py-1.5 px-3" onClick={genHandoffBrief} disabled={genHandoff}>
-                      {genHandoff ? '⟳ Generating…' : '✦ Generate Brief'}
+                    <button className="btn-primary text-xs py-1.5 px-3" onClick={generateHandoff} disabled={genHandoff}>
+                      {genHandoff ? '⟳ Generating…' : '✦ Generate'}
                     </button>
                   </div>
                   {(handoff || genHandoff) && (
-                    <div className="glass rounded-lg p-4">
-                      <pre className="text-xs text-white/75 leading-relaxed whitespace-pre-wrap font-sans">
-                        {handoff}{genHandoff && <span className="animate-pulse text-orange-400">▊</span>}
+                    <div className="glass rounded-xl p-5">
+                      <pre className="text-sm text-white/75 leading-relaxed whitespace-pre-wrap font-sans">
+                        {handoff}{genHandoff && <span className="animate-pulse" style={{color:ACCENT}}>▊</span>}
                       </pre>
                       {handoff && (
-                        <button className="bdr-btn bdr-btn-secondary text-xs mt-3" onClick={() => navigator.clipboard.writeText(handoff).then(()=>toast('Copied!'))}>
-                          Copy to Clipboard
+                        <button className="btn-secondary text-xs mt-4"
+                          onClick={() => navigator.clipboard.writeText(handoff).then(()=>toast('Copied'))}>
+                          Copy to clipboard
                         </button>
                       )}
                     </div>
                   )}
                 </div>
-              )}
-            </div>
-          ) : null}
+                <div className="space-y-2">
+                  <p className="text-xs text-white/40 uppercase tracking-wider">BDR Notes</p>
+                  <textarea className="input-field text-sm" rows={3} placeholder="Add your own observations…"
+                    value={editNotes} onChange={e => setEditNotes(e.target.value)}
+                    onBlur={() => editNotes !== selected.notes && saveEdits({ notes: editNotes })} />
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'battlecard' && (
+              <div className="space-y-4">
+                <p className="text-sm text-white/50">Auto-generated from AI research on {selected.company}'s current AI stack.</p>
+                {[
+                  ['If they mention OpenAI / Azure', selected.battlecard_openai, '#fb923c'],
+                  ['If they mention Google / Gemini', selected.battlecard_google, '#60a5fa'],
+                  ['If they have no AI yet',           selected.battlecard_greenfield, '#4ade80'],
+                ].map(([scenario, text, color]) => (
+                  <div key={scenario} className="glass rounded-xl p-5 space-y-2" style={{ borderLeft:`2px solid ${color}50` }}>
+                    <p className="text-xs font-semibold" style={{ color }}>{scenario}</p>
+                    <p className="text-sm text-white/70 leading-relaxed">{text||'—'}</p>
+                  </div>
+                ))}
+                <div className="glass rounded-xl p-5 space-y-2">
+                  <p className="text-xs text-white/40 uppercase tracking-wider">Their Current Tools</p>
+                  <div className="flex flex-wrap gap-2">
+                    {(selected.current_ai_tools||[]).map(t => (
+                      <span key={t} className="text-xs px-2 py-0.5 rounded border border-white/10 text-white/55">{t}</span>
+                    ))}
+                  </div>
+                  <p className="text-xs text-white/40 uppercase tracking-wider mt-3">Their Pain Points</p>
+                  {(selected.likely_pain_points||[]).map((p,i) => <p key={i} className="text-sm text-white/65">· {p}</p>)}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'monte_carlo' && mc && (
+              <div className="space-y-5">
+                <div className="glass rounded-2xl p-6 space-y-4">
+                  <p className="text-xs text-white/40 uppercase tracking-wider">1,000 Simulated Outcomes — {selected.company}</p>
+                  <div className="flex items-end gap-8">
+                    <div><p className="text-xs text-white/30">Expected</p><p className="text-3xl font-bold font-mono" style={{color:ACCENT}}>{fmtEur(mc.mean)}</p></div>
+                    <div><p className="text-xs text-white/30">95% Confidence Range</p><p className="text-xl font-bold text-white">{fmtEur(mc.p5)} – {fmtEur(mc.p95)}</p></div>
+                  </div>
+                  <ResponsiveContainer width="100%" height={120}>
+                    <BarChart data={mc.histogram} barCategoryGap={3}>
+                      <XAxis dataKey="x" tick={{ fill:'rgba(255,255,255,0.3)', fontSize:10 }} tickFormatter={v=>`€${v}K`} />
+                      <YAxis hide />
+                      <Tooltip content={<MCTip />} cursor={false} />
+                      <Bar dataKey="count" radius={[3,3,0,0]} fill={ACCENT} fillOpacity={0.75} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="glass rounded-xl p-5 space-y-3">
+                  <p className="text-xs text-white/40 uppercase tracking-wider">Simulation Inputs</p>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-xs text-white/30">Base ACV</p>
+                      <input className="input-field mt-1 text-sm" type="number" defaultValue={selected.expected_acv}
+                        onBlur={e => saveEdits({ expected_acv: parseInt(e.target.value) })} />
+                    </div>
+                    <div>
+                      <p className="text-xs text-white/30">Conversion Probability</p>
+                      <input className="input-field mt-1 text-sm" type="number" step="0.01" min="0" max="1" defaultValue={selected.conversion_probability}
+                        onBlur={e => { saveEdits({ conversion_probability: parseFloat(e.target.value) }); setMC(singleLeadMonteCarlo({ ...selected, conversion_probability: parseFloat(e.target.value) })); }} />
+                    </div>
+                  </div>
+                  <p className="text-xs text-white/25">ACV varies ±40% per simulation · conversion probability varies ±10pp · 1,000 iterations</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center space-y-3">
+            <p className="text-4xl">✦</p>
+            <p className="text-sm text-white/40">Type a company name above and click Research</p>
+            <p className="text-xs text-white/25">or select an existing lead from the list</p>
+          </div>
         </div>
       )}
     </div>
