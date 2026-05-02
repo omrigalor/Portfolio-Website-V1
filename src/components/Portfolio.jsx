@@ -27,8 +27,8 @@ const EmailIcon = () => (
 const PATENTS = [
   {
     id: 'reprium',
-    shortName: 'Predict relationship longevity & child prosperity',
-    name: 'Predictive Algorithm for Relationship Longevity & Offspring Prosperity',
+    shortName: 'Predictive Algorithm for Relationship Longevity & Offspring Prosperity',
+    name: null,
     patentNo: 'US 11,847,293 B2',
     live: true,
     desc: 'Predicts how long a relationship will last and how well children will thrive — based on how culturally similar or different the two partners are. Built on 22,000+ real couples and 5M+ child outcomes.',
@@ -37,7 +37,7 @@ const PATENTS = [
   },
   {
     id: 'attrition',
-    shortName: 'Predict which employees will quit',
+    shortName: 'Predictive Algorithm for Employee Attrition',
     name: 'Intra-Ancestral Divergence Model for Predicting Employee Attrition',
     patentNo: 'US 11,923,451 B1',
     live: true,
@@ -47,7 +47,7 @@ const PATENTS = [
   },
   {
     id: 'loan',
-    shortName: 'Predict loan default probability',
+    shortName: 'Predictive Algorithm for Loan Default Risk',
     name: 'Intra-Ancestral Divergence Model for Predicting Loan Default Risk',
     patentNo: 'US 12,041,876 B2',
     live: true,
@@ -90,7 +90,7 @@ function PatentCard({ item, onOpen }) {
             )}
           </div>
           <h3 className="text-sm font-semibold text-white/90 leading-snug">{item.shortName}</h3>
-          <p className="text-xs text-white/35 leading-snug mt-1">{item.name}</p>
+          {item.name && <p className="text-xs text-white/52 leading-snug mt-1.5 italic">{item.name}</p>}
         </div>
         {item.live && (
           <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
@@ -304,7 +304,7 @@ export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan, 
                 </div>
               </div>
               <p className="text-xs text-white/65 leading-relaxed">
-                AI agent that researches a portfolio of companies and ranks them using Monte Carlo simulation (2,000 iterations) and a 10-tree Random Forest across 12 weighted investment factors.
+                AI agent that researches a portfolio of companies and ranks them using Monte Carlo simulation (2,000 iterations) and a 10-tree Random Forest across 12 weighted investment factors — with per-factor data quality scores that adjust confidence weighting.
               </p>
               <div className="flex flex-wrap gap-1.5 mt-auto">
                 {['Monte Carlo','Random Forest','12 Factors','Portfolio Scatter'].map(t => (
