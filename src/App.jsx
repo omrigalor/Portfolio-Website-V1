@@ -8,6 +8,7 @@ import AttritionApp from './components/AttritionApp';
 import LoanApp from './components/LoanApp';
 import VCModel from './components/VCModel';
 import BDRApp from './components/BDRApp';
+import BlueRedMemo from './components/BlueRedMemo';
 
 // ─── Tab bar ──────────────────────────────────────────────────────────────────
 
@@ -192,15 +193,17 @@ export default function App() {
 
   if (mode === 'vc') return <VCModel onBack={() => setMode('portfolio')} />;
 
-  if (mode === 'bdr') return <BDRApp onBack={() => setMode('portfolio')} />;
+  if (mode === 'bdr')      return <BDRApp      onBack={() => setMode('portfolio')} />;
+  if (mode === 'blueRed') return <BlueRedMemo onBack={() => setMode('portfolio')} />;
 
   return (
     <Portfolio
-      onOpenReprium={()   => setMode('reprium')}
-      onOpenAttrition={() => setMode('attrition')}
-      onOpenLoan={()      => setMode('loan')}
-      onOpenVC={()        => setMode('vc')}
-      onOpenBDR={()       => setMode('bdr')}
+      onOpenReprium={()    => setMode('reprium')}
+      onOpenAttrition={()  => setMode('attrition')}
+      onOpenLoan={()       => setMode('loan')}
+      onOpenVC={()         => setMode('vc')}
+      onOpenBDR={()        => setMode('bdr')}
+      onOpenBlueRed={()    => setMode('blueRed')}
     />
   );
 }

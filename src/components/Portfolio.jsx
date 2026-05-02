@@ -110,7 +110,7 @@ function PatentCard({ item, onOpen }) {
 
 // ─── Main portfolio page ──────────────────────────────────────────────────────
 
-export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan, onOpenVC, onOpenBDR }) {
+export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan, onOpenVC, onOpenBDR, onOpenBlueRed }) {
   const [openPaper, setOpenPaper] = useState(null);
 
   if (openPaper) {
@@ -274,14 +274,14 @@ export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan, 
           </div>
         </section>
 
-        {/* ── Financial Agents ── */}
+        {/* ── AI Agents ── */}
         <section>
           <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-xl font-display font-semibold text-white">Financial Agents</h2>
+            <h2 className="text-xl font-display font-semibold text-white">AI Agents</h2>
             <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400">AI-Powered</span>
           </div>
-          <p className="text-xs text-white/50 mb-6">Autonomous agents combining statistical modeling and simulation to generate actionable investment intelligence.</p>
-          <div className="grid grid-cols-1 gap-5 max-w-lg mx-auto">
+          <p className="text-xs text-white/50 mb-6">Autonomous agents built for investment intelligence and revenue operations.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* VC Agent */}
             <div
               className="glass rounded-2xl p-6 flex flex-col gap-4 card-lift hover:bg-white/6 cursor-pointer transition-all"
@@ -306,23 +306,13 @@ export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan, 
               <p className="text-xs text-white/65 leading-relaxed">
                 AI agent that researches a portfolio of companies and ranks them using Monte Carlo simulation (2,000 iterations) and a 10-tree Random Forest across 12 weighted investment factors.
               </p>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1.5 mt-auto">
                 {['Monte Carlo','Random Forest','12 Factors','Portfolio Scatter'].map(t => (
                   <span key={t} className="px-2 py-0.5 rounded-full text-xs text-white/70 border border-white/10">{t}</span>
                 ))}
               </div>
             </div>
-          </div>
-        </section>
 
-        {/* ── Sales & GTM Tools ── */}
-        <section>
-          <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-xl font-display font-semibold text-white">Sales & GTM Tools</h2>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400">AI-Powered</span>
-          </div>
-          <p className="text-xs text-white/50 mb-6">Operational systems for pipeline management, lead qualification, and revenue generation.</p>
-          <div className="grid grid-cols-1 gap-5 max-w-lg mx-auto">
             {/* BDR OS */}
             <div
               className="glass rounded-2xl p-6 flex flex-col gap-4 card-lift hover:bg-white/6 cursor-pointer transition-all"
@@ -347,8 +337,49 @@ export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan, 
               <p className="text-xs text-white/65 leading-relaxed">
                 Full-stack EMEA pipeline OS. AI-powered lead scoring across 10 BANT factors, AE handoff brief generation, outbound campaign tracker, discovery call playbook, and funnel analytics.
               </p>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap gap-1.5 mt-auto">
                 {['Lead Scoring','AI Handoffs','Outbound Tracker','BANT Playbook','Funnel Analytics'].map(t => (
+                  <span key={t} className="px-2 py-0.5 rounded-full text-xs text-white/70 border border-white/10">{t}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── VC Research ── */}
+        <section>
+          <div className="flex items-center gap-3 mb-2">
+            <h2 className="text-xl font-display font-semibold text-white">VC Research</h2>
+            <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">Interactive</span>
+          </div>
+          <p className="text-xs text-white/50 mb-6">Deal sourcing assignments and investment analysis.</p>
+          <div className="grid grid-cols-1 gap-5 max-w-lg mx-auto">
+            <div
+              className="glass rounded-2xl p-6 flex flex-col gap-4 card-lift hover:bg-white/6 cursor-pointer transition-all"
+              style={{ borderTop: '2px solid rgba(129,140,248,0.4)' }}
+              onClick={onOpenBlueRed}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/15 border border-green-500/30 text-green-400 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                      Live
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-semibold text-white/90 leading-snug">BlueRed Partners · Deal Sourcing Memo</h3>
+                  <p className="text-xs text-white/35 mt-1">Israeli tech → Asian markets</p>
+                </div>
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: 'rgba(129,140,248,0.12)', border: '1px solid rgba(129,140,248,0.3)' }}>
+                  <span className="text-sm" style={{ color: '#818cf8' }}>→</span>
+                </div>
+              </div>
+              <p className="text-xs text-white/65 leading-relaxed">
+                Sourced and evaluated ~40 Israeli seed-stage companies for a Singapore-based VC fund. Independently validated against stage, competitive landscape, and Asia market fit — replacing 4 of 7 originally proposed picks.
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {['7 Companies','Cyber + Fintech','Asia Fit','Primary Research'].map(t => (
                   <span key={t} className="px-2 py-0.5 rounded-full text-xs text-white/70 border border-white/10">{t}</span>
                 ))}
               </div>
