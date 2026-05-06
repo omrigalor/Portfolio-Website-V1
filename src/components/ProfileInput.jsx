@@ -5,7 +5,17 @@ import { computeFullScore } from '../lib/scoring';
 import ResultsDashboard from './ResultsDashboard';
 import CalculationEngine from './CalculationEngine';
 
-const DEFAULT_PERSON = { name: '', age: '', education: 'college', country1: 'GBR', country2: '' };
+const DEFAULT_PERSON = { name: '', age: '', education: 'college', country1: 'GBR', country2: '', religion: '' };
+
+const RELIGION_OPTIONS = [
+  { value: '',            label: '— Infer from country —' },
+  { value: 'Christians',  label: 'Christian' },
+  { value: 'Jews',        label: 'Jewish' },
+  { value: 'Muslims',     label: 'Muslim' },
+  { value: 'Buddhists',   label: 'Buddhist' },
+  { value: 'Hindus',      label: 'Hindu' },
+  { value: 'Nonreligious',label: 'Nonreligious' },
+];
 
 // ─── Searchable country combobox ─────────────────────────────────────────────
 function CountrySelect({ value, onChange, placeholder = 'Search country…' }) {
@@ -161,6 +171,19 @@ function PersonForm({ data, onChange, label, accentColor, side }) {
       </div>
 
       <div className="space-y-1.5">
+        <label className="text-xs text-white/40 font-medium">Religion</label>
+        <select
+          value={data.religion}
+          onChange={e => onChange({ ...data, religion: e.target.value })}
+          className="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-white/25 transition-colors"
+        >
+          {RELIGION_OPTIONS.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="space-y-1.5">
         <label className="text-xs text-white/40 font-medium">Primary Country of Ancestry</label>
         <CountrySelect
           value={data.country1}
@@ -214,6 +237,8 @@ export default function ProfileInput({ onExit, hideBack = false }) {
       ageB: Number(personB.age) || 28,
       eduA: personA.education,
       eduB: personB.education,
+      religionA: personA.religion || undefined,
+      religionB: personB.religion || undefined,
     });
     setResult(res);
     setShowCalc(true);
@@ -234,6 +259,8 @@ export default function ProfileInput({ onExit, hideBack = false }) {
     ancestriesA, ancestriesB,
     ageA: Number(personA.age) || 28, ageB: Number(personB.age) || 28,
     eduA: personA.education, eduB: personB.education,
+    religionA: personA.religion || undefined,
+    religionB: personB.religion || undefined,
   }) : null;
 
   return (

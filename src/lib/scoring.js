@@ -216,15 +216,16 @@ const RELIGION_PAIR_FE = {
   'Christians_Nonreligious':     -0.03367,  // n=165
   'Ethnoreligionists':            0.00575,  // n=3815
   'Hindus':                       0.00703,  // n=169
+  'Jews':                        -0.04012,  // n=89 (low same-community divorce rate)
   'Muslims':                     -0.02231,  // n=192
   'Nonreligious':                 0.00579,  // n=301
 };
 
-function getReligionFE(codeA, codeB) {
+function getReligionFE(codeA, codeB, relOverrideA, relOverrideB) {
   const groupA = ISO_TO_GROUP[codeA] ?? codeA;
-  const relA = COUNTRY_RELIGION[codeA] ?? COUNTRY_RELIGION[groupA] ?? 'Christians';
+  const relA = relOverrideA || (COUNTRY_RELIGION[codeA] ?? COUNTRY_RELIGION[groupA] ?? 'Christians');
   const groupB = ISO_TO_GROUP[codeB] ?? codeB;
-  const relB = COUNTRY_RELIGION[codeB] ?? COUNTRY_RELIGION[groupB] ?? 'Christians';
+  const relB = relOverrideB || (COUNTRY_RELIGION[codeB] ?? COUNTRY_RELIGION[groupB] ?? 'Christians');
   const pair = relA === relB ? relA : [relA, relB].sort().join('_');
   return RELIGION_PAIR_FE[pair] ?? RELIGION_PAIR_FE['Christians'] ?? 0;
 }
@@ -326,7 +327,7 @@ export function getMarriageProbability(ancestryA, ancestryB) {
 // ─── Relationship Synergy Score ───────────────────────────────────────────────
 
 export function computeRelationshipScore(input) {
-  const { ancestriesA, ancestriesB, ageA, ageB, eduA, eduB } = input;
+  const { ancestriesA, ancestriesB, ageA, ageB, eduA, eduB, religionA, religionB } = input;
   const psi  = computeCulturalDistance(ancestriesA, ancestriesB);
   const psi2 = psi * psi;
 
@@ -340,7 +341,7 @@ export function computeRelationshipScore(input) {
   const fe_anc  = ancestriesA.reduce((s, a) => s + getAncestryFE(a), 0) / ancestriesA.length
                 + ancestriesB.reduce((s, a) => s + getAncestryFE(a), 0) / ancestriesB.length;
   const fe_cont = getContinentFE(ancestriesA[0], ancestriesB[0]);
-  const fe_rel  = getReligionFE(ancestriesA[0], ancestriesB[0]);
+  const fe_rel  = getReligionFE(ancestriesA[0], ancestriesB[0], religionA, religionB);
 
   const B_hat = B_core + fe_age + fe_edu + fe_anc + fe_cont + fe_rel;
 
