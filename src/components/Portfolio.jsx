@@ -31,7 +31,7 @@ const PATENTS = [
     name: null,
     patentNo: 'US 11,847,293 B2',
     live: true,
-    desc: 'Predicts how long a relationship will last and how well children will thrive — based on how culturally similar or different the two partners are. Built on 22,000+ real couples and 5M+ child outcomes.',
+    desc: 'Predicts how long a relationship will last and how well children will thrive — based on how culturally similar or different the two partners are. Built on 22,000+ real couples and 5M+ child outcomes. Pursued acquisition including Bumble board-level review.',
     tags: ['Relationship Science', 'Cultural Genetics', 'Predictive Modeling'],
     accent: '#C41E3A',
   },
@@ -376,7 +376,7 @@ export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan, 
                 </div>
               </div>
               <p className="text-xs text-white/65 leading-relaxed">
-                Sourced and evaluated ~40 Israeli seed-stage companies for a Singapore-based VC fund. Independently validated against stage, competitive landscape, and Asia market fit — replacing 4 of 7 originally proposed picks.
+                Sourced and evaluated ~240 Israeli seed-stage companies for a Singapore-based VC fund. Independently validated each against stage, competitive landscape, and Asia market fit.
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {['7 Companies','Cyber + Fintech','Asia Fit','Primary Research'].map(t => (
@@ -390,7 +390,7 @@ export default function Portfolio({ onOpenReprium, onOpenAttrition, onOpenLoan, 
         {/* ── Footer ── */}
         <footer className="border-t border-white/5 pt-8 text-center">
           <p className="text-xs text-white/38">
-            omri_galor@alumni.brown.edu · © 2025 Omri Galor
+            omri_galor@alumni.brown.edu · © 2026 Omri Galor
           </p>
         </footer>
       </div>
