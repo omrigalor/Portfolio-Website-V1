@@ -36,7 +36,7 @@ export default function ResultsDashboard({ result, personA, personB, animated = 
   } = result;
 
   // Normalize FEs to 0–100 compatibility scores (lower FE = less separation risk = better)
-  const ageScore       = Math.round(Math.max(0, Math.min(100, 100 * (0.128 - fe_age)           / 0.182)));
+  const ageScore       = Math.round(Math.max(0, Math.min(100, 100 * (0.130 - fe_age)           / 0.184)));
   const religiousScore = Math.round(Math.max(0, Math.min(100, 100 * (0.025 - (fe_rel ?? 0))    / 0.089)));
   const eduScore       = Math.round(Math.max(0, Math.min(100, 100 * (0.007 - fe_edu)           / 0.018)));
 
@@ -207,7 +207,7 @@ export default function ResultsDashboard({ result, personA, personB, animated = 
         <h3 className="text-sm font-semibold text-white/70 uppercase tracking-widest">Statistical Methodology</h3>
         <div className="space-y-2 text-xs text-white/65 leading-relaxed">
           <p><strong className="text-white/85">Data:</strong> CPS micro-data, 22,091 cross-national married couples (1994–2023). Cultural distance ψ = pre-historic migratory distance between ancestral homelands, normalised to [0,1] (Pemberton et al. 2013).</p>
-          <p><strong className="text-white/85">Separation regression:</strong> reghdfe with ancestry, age, education, religion, and continent-pair fixed effects. β₁=−0.31, β₂=+0.64, ψ*=0.240 (full-sample); β₁=−0.16, β₂=+0.24, ψ*=0.338 (under-30 subgroup).</p>
+          <p><strong className="text-white/85">Separation regression:</strong> reghdfe with ancestry, age, education, religion, and continent-pair fixed effects. β₁=−0.31, β₂=+0.64, ψ*=0.240 (full-sample); β₁=−0.16, β₂=+0.24, ψ*=0.338 (under-30 subgroup, p=0.441).</p>
           <p><strong className="text-white/85">Child outcomes:</strong> ACS 5yr + NLSY79 (n=5.3M). Four OLS regressions of log wages, educational attainment, originality, and total activities on ψ and ψ² with ancestry and age FEs.</p>
           <p><strong className="text-white/85">Market adjustment:</strong> P(ever marry) = geometric mean of observed intermarriage rates for this continental pairing in CPS. Overall = P(survive | married) × P(marry).</p>
         </div>

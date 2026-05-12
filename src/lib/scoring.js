@@ -25,6 +25,9 @@ export const SEPARATION_COEFS = {
 };
 
 // Under-30 subgroup (both partners < 30) — below30.tex Column (3)
+// Note: effect is not statistically significant at p=0.441 (n=1,195, 180 ancestry pairs).
+// The pitch deck showed stronger results from an older data run (n=993) — this file uses
+// the current Stata output.
 export const SEPARATION_COEFS_YOUNG = {
   alpha:       0.0661,
   beta1:      -0.16,
