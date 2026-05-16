@@ -1,0 +1,1 @@
+*,:before,:after{box-sizing:border-box}body{background:#030712;margin:0}#root{width:100%;max-width:100%}button,input[type=range]{cursor:pointer}input[type=range]::-webkit-slider-thumb{accent-color:#3b82f6}
